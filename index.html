@@ -15,11 +15,241 @@
     <link rel="icon" type="image/svg+xml" href="/mb-cambodia-app-/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script type="module" crossorigin src="/mb-cambodia-app-/assets/index-tGulQzRr.js"></script>
     <link rel="stylesheet" crossorigin href="/mb-cambodia-app-/assets/index-BIeGMN93.css">
+    <style>
+      #qr-scan{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
+        color:#fff;background:#0c0d0a;overflow:hidden;
+        font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+        opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease;
+        -webkit-tap-highlight-color:transparent}
+      #qr-scan.open{opacity:1;visibility:visible;pointer-events:auto}
+
+      #qr-scan .qr-bg{position:absolute;inset:0;z-index:0;
+        background:url("./scan-bg.jpg") center/cover no-repeat;transform:scale(1.04)}
+      #qr-scan .qr-vignette{position:absolute;inset:0;z-index:1;pointer-events:none;
+        background:radial-gradient(125% 72% at 50% 36%,rgba(0,0,0,0) 0%,rgba(0,0,0,.28) 72%,rgba(0,0,0,.52) 100%)}
+
+      /* four blurred panels leave a sharp square window over the frame */
+      #qr-scan .qr-panel{position:absolute;z-index:2;background:rgba(9,10,8,.42);
+        -webkit-backdrop-filter:blur(16px) saturate(.85);backdrop-filter:blur(16px) saturate(.85)}
+
+      #qr-scan .qr-head{position:relative;z-index:4;flex:none;height:56px;display:flex;align-items:center;
+        padding:0 10px;padding-top:env(safe-area-inset-top)}
+      #qr-scan .qr-head h1{position:absolute;left:0;right:0;margin:0;text-align:center;
+        font-size:17px;font-weight:600;letter-spacing:.2px;pointer-events:none}
+      #qr-scan .qr-back{width:40px;height:40px;display:grid;place-items:center;border:0;padding:0;
+        background:none;color:#fff;border-radius:50%;cursor:pointer}
+      #qr-scan .qr-back:active{background:rgba(255,255,255,.14)}
+
+      #qr-scan .qr-content{position:relative;z-index:4;flex:1;display:flex;flex-direction:column;
+        align-items:center;padding-top:4.2vh}
+      #qr-scan .qr-frame{position:relative;width:min(78vw,318px);aspect-ratio:1/1}
+      #qr-scan .qr-frame::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.045)}
+      #qr-scan .qr-corner{position:absolute;width:28px;height:28px;border:2.5px solid #fff}
+      #qr-scan .qr-corner.tl{left:0;top:0;border-right:0;border-bottom:0;border-top-left-radius:4px}
+      #qr-scan .qr-corner.tr{right:0;top:0;border-left:0;border-bottom:0;border-top-right-radius:4px}
+      #qr-scan .qr-corner.bl{left:0;bottom:0;border-right:0;border-top:0;border-bottom-left-radius:4px}
+      #qr-scan .qr-corner.br{right:0;bottom:0;border-left:0;border-top:0;border-bottom-right-radius:4px}
+
+      #qr-scan .qr-hint{margin:32px 0 0;font-size:15px;font-weight:400;color:rgba(255,255,255,.96);
+        letter-spacing:.1px;text-align:center;padding:0 24px}
+      #qr-scan .qr-action-wrap{position:relative;margin-top:32px}
+      #qr-scan .qr-actions{display:flex;gap:14px}
+      #qr-scan .qr-btn{width:122px;height:46px;padding:0 12px;border-radius:10px;
+        border:1.5px solid rgba(255,255,255,.82);background:rgba(0,0,0,.16);color:#fff;
+        font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;
+        transition:background .15s ease,color .15s ease,border-color .15s ease}
+      #qr-scan .qr-btn:active{background:rgba(255,255,255,.2)}
+      #qr-scan .qr-btn.on{background:#fff;border-color:#fff;color:#101010}
+      #qr-scan .qr-note{position:absolute;top:calc(100% + 16px);left:50%;transform:translateX(-50%);
+        white-space:nowrap;max-width:86vw;overflow:hidden;text-overflow:ellipsis;
+        padding:8px 14px;border-radius:999px;font-size:12px;color:#fff;
+        background:rgba(0,0,0,.66);border:1px solid rgba(255,255,255,.16);
+        opacity:0;transition:opacity .2s ease;pointer-events:none}
+      #qr-scan .qr-note.show{opacity:1}
+
+      #qr-scan .qr-foot{position:relative;z-index:4;flex:none;display:flex;flex-direction:column;
+        align-items:center;gap:11px;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+      #qr-scan .qr-foot p{margin:0;font-size:13px;color:rgba(255,255,255,.9);letter-spacing:.1px}
+      #qr-scan .qr-brands{display:flex;align-items:center;gap:10px}
+
+      #qr-scan .brand-khqr{height:40px;min-width:82px;padding:0 11px;border-radius:6px;background:#e1251b;
+        display:grid;place-items:center;color:#fff;font-size:19px;font-weight:800;letter-spacing:-.6px;
+        box-shadow:0 2px 6px rgba(0,0,0,.28)}
+      #qr-scan .brand-atm{height:40px;padding:0 11px;border-radius:6px;background:#fff;
+        display:flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(0,0,0,.28)}
+      #qr-scan .brand-atm .atm-star{width:17px;height:17px;display:block}
+      #qr-scan .brand-atm .atm-text{display:flex;flex-direction:column;line-height:1}
+      #qr-scan .brand-atm .atm-text b{color:#c8102e;font-size:16px;font-weight:800;letter-spacing:.2px}
+      #qr-scan .brand-atm .atm-text small{color:#0b2a5b;font-size:7.5px;font-weight:700;letter-spacing:.15px;margin-top:2px}
+
+      #qr-scan .qr-home{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);
+        width:138px;height:5px;border-radius:3px;background:rgba(255,255,255,.92);z-index:5}
+
+      @media (max-height:730px){
+        #qr-scan .qr-frame{width:min(64vw,236px)}
+        #qr-scan .qr-hint{margin-top:22px}
+        #qr-scan .qr-action-wrap{margin-top:22px}
+        #qr-scan .qr-foot{padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+
+    <div id="qr-scan" role="dialog" aria-modal="true" aria-label="Scan QR" aria-hidden="true">
+      <div class="qr-bg"></div>
+      <div class="qr-vignette"></div>
+      <div class="qr-panel" data-side="t"></div>
+      <div class="qr-panel" data-side="b"></div>
+      <div class="qr-panel" data-side="l"></div>
+      <div class="qr-panel" data-side="r"></div>
+
+      <header class="qr-head">
+        <button class="qr-back" type="button" aria-label="Back">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </button>
+        <h1>Scan QR</h1>
+      </header>
+
+      <div class="qr-content">
+        <div class="qr-frame" aria-hidden="true">
+          <span class="qr-corner tl"></span>
+          <span class="qr-corner tr"></span>
+          <span class="qr-corner bl"></span>
+          <span class="qr-corner br"></span>
+        </div>
+        <p class="qr-hint">Align frame with QR code</p>
+        <div class="qr-action-wrap">
+          <div class="qr-actions">
+            <button class="qr-btn" id="qr-flash" type="button">Flash</button>
+            <button class="qr-btn" id="qr-upload" type="button">Upload QR</button>
+            <input id="qr-file" type="file" accept="image/*" hidden />
+          </div>
+          <p class="qr-note" id="qr-note" role="status" aria-live="polite">Demo only — QR codes are not processed.</p>
+        </div>
+      </div>
+
+      <footer class="qr-foot">
+        <p>Support payment:</p>
+        <div class="qr-brands">
+          <div class="brand-khqr" aria-label="KHQR">KHQR</div>
+          <div class="brand-atm" aria-label="ATM MB Cambodia">
+            <svg class="atm-star" viewBox="0 0 24 24" fill="#d6001c" aria-hidden="true">
+              <path d="M12 1.6l1.9 6.2 5.3-3.6-3.6 5.3 6.2 1.9-6.2 1.9 3.6 5.3-5.3-3.6-1.9 6.2-1.9-6.2-5.3 3.6 3.6-5.3L1.6 12l6.2-1.9-3.6-5.3 5.3 3.6z" />
+            </svg>
+            <span class="atm-text"><b>ATM</b><small>MBCambodia</small></span>
+          </div>
+        </div>
+      </footer>
+
+      <div class="qr-home" aria-hidden="true"></div>
+    </div>
+
+    <script>
+      (function () {
+        var overlay = document.getElementById("qr-scan");
+        if (!overlay || overlay.dataset.ready) return;
+        overlay.dataset.ready = "1";
+
+        var frame = overlay.querySelector(".qr-frame");
+        var panels = {
+          t: overlay.querySelector('[data-side="t"]'),
+          b: overlay.querySelector('[data-side="b"]'),
+          l: overlay.querySelector('[data-side="l"]'),
+          r: overlay.querySelector('[data-side="r"]')
+        };
+        var back = overlay.querySelector(".qr-back");
+        var flash = document.getElementById("qr-flash");
+        var upload = document.getElementById("qr-upload");
+        var file = document.getElementById("qr-file");
+        var note = document.getElementById("qr-note");
+        var noteTimer = null;
+
+        function layout() {
+          var o = overlay.getBoundingClientRect();
+          var f = frame.getBoundingClientRect();
+          if (!f.width) return;
+          var top = f.top - o.top;
+          var left = f.left - o.left;
+          var w = f.width;
+          var h = f.height;
+          panels.t.style.cssText = "left:0;top:0;width:100%;height:" + top + "px";
+          panels.b.style.cssText = "left:0;top:" + (top + h) + "px;width:100%;height:" + Math.max(0, o.height - top - h) + "px";
+          panels.l.style.cssText = "left:0;top:" + top + "px;width:" + left + "px;height:" + h + "px";
+          panels.r.style.cssText = "left:" + (left + w) + "px;top:" + top + "px;width:" + Math.max(0, o.width - left - w) + "px;height:" + h + "px";
+        }
+
+        function showNote(text) {
+          note.textContent = text;
+          note.classList.add("show");
+          clearTimeout(noteTimer);
+          noteTimer = setTimeout(function () { note.classList.remove("show"); }, 2600);
+        }
+
+        function open() {
+          overlay.classList.add("open");
+          overlay.setAttribute("aria-hidden", "false");
+          document.documentElement.style.overflow = "hidden";
+          layout();
+          requestAnimationFrame(layout);
+          setTimeout(function () { back.focus(); }, 80);
+        }
+
+        function close() {
+          overlay.classList.remove("open");
+          overlay.setAttribute("aria-hidden", "true");
+          document.documentElement.style.overflow = "";
+          flash.classList.remove("on");
+          flash.textContent = "Flash";
+          note.classList.remove("show");
+        }
+
+        back.addEventListener("click", close);
+        flash.addEventListener("click", function () {
+          var on = flash.classList.toggle("on");
+          flash.textContent = on ? "Flash on" : "Flash";
+        });
+        upload.addEventListener("click", function () { file.click(); });
+        file.addEventListener("change", function () {
+          if (!file.files || !file.files.length) return;
+          showNote("Demo only — QR codes are not processed.");
+          file.value = "";
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && overlay.classList.contains("open")) close();
+        });
+
+        window.addEventListener("resize", function () {
+          if (overlay.classList.contains("open")) layout();
+        });
+        window.addEventListener("orientationchange", function () {
+          setTimeout(layout, 250);
+        });
+
+        // open the scanner from the app's QR entry points without letting the
+        // React handler show its "not connected" toast
+        document.addEventListener("click", function (e) {
+          if (overlay.classList.contains("open")) return;
+          var el = e.target && e.target.closest ? e.target.closest("[aria-label]") : null;
+          if (!el || el.closest("#qr-scan")) return;
+          var label = (el.getAttribute("aria-label") || "").toLowerCase();
+          if (label.indexOf("quét") > -1 || label.indexOf("scan") > -1) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            open();
+          }
+        }, true);
+
+        window.mbScanQR = { open: open, close: close };
+      })();
+    </script>
   </body>
 </html>
