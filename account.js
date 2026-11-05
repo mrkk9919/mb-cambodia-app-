@@ -171,6 +171,30 @@
     render(accounts);
   }
 
+  function postJson(url, data) {
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = window.setTimeout(function () {
+      if (controller) controller.abort();
+    }, 10000);
+    function done() { window.clearTimeout(timer); }
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      cache: "no-store",
+      signal: controller ? controller.signal : undefined
+    })
+      .then(function (res) {
+        done();
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json().catch(function () { return {}; });
+      })
+      .catch(function (err) {
+        done();
+        throw err;
+      });
+  }
+
   function submitForm(e) {
     e.preventDefault();
     var payload = {
@@ -187,18 +211,7 @@
     formErr.textContent = "";
     fSubmit.disabled = true;
 
-    fetch("/api/internal/accounts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      cache: "no-store"
-    })
-      .then(function (res) {
-        return res.json().then(function (body) {
-          if (!res.ok) throw new Error((body && body.error) || ("HTTP " + res.status));
-          return body;
-        });
-      })
+    postJson("/api/internal/accounts", payload)
       .then(function (body) {
         var accounts = body.accounts && body.accounts.length ? body.accounts : null;
         if (accounts) render(accounts);
