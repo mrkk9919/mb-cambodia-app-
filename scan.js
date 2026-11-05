@@ -731,7 +731,17 @@
     var el = e.target && e.target.closest ? e.target.closest("[aria-label]") : null;
     if (!el || el.closest("#qr-scan")) return;
     var label = (el.getAttribute("aria-label") || "").toLowerCase();
-    if (label.indexOf("qu\u00e9t") > -1 || label.indexOf("scan") > -1) {
+    var testid = el.getAttribute("data-testid") || "";
+    // header round QR button = show own receive QR (matches the real app)
+    if (testid === "button-qr-account") {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      openMyQr();
+      return;
+    }
+    // real scanner entry: bottom-nav centre button
+    if (testid === "nav-qr" || label.indexOf("tr\u00ecnh qu\u00e9t") > -1 || label.indexOf("scan") > -1) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -749,6 +759,7 @@
   var myqrAccount = document.getElementById("myqr-account");
   var myqrStatus = document.getElementById("myqr-status");
   var myqrClose = document.getElementById("myqr-close");
+  var myqrFromScanner = false;
 
   function drawQr(text) {
     if (!window.qrcode) return false;
@@ -760,16 +771,24 @@
   }
 
   function openMyQr() {
-    if (envMode === "demo-static") {
-      showToast("My QR Code needs the backend service.");
-      return;
-    }
+    myqrFromScanner = overlay.classList.contains("open");
+    if (myqrFromScanner) stopCamera();
     myqrStatus.textContent = "";
     myqrImg.removeAttribute("data-ready");
     myqrImg.removeAttribute("src");
     myqrLoading.hidden = false;
     myqrSheet.classList.add("open");
     myqrSheet.setAttribute("aria-hidden", "false");
+    if (envMode === "demo-static") {
+      // static hosting: show the bundled demo receive QR (clearly labelled)
+      myqrImg.src = "./myqr-demo.png";
+      myqrImg.setAttribute("data-ready", "1");
+      myqrName.textContent = "MB Cambodia (demo)";
+      myqrAccount.textContent = "angkor.travel@acleda";
+      myqrLoading.hidden = true;
+      myqrStatus.textContent = "Static preview - shown for demo";
+      return;
+    }
     apiFetch("/qr/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -792,6 +811,8 @@
   function closeMyQr() {
     myqrSheet.classList.remove("open");
     myqrSheet.setAttribute("aria-hidden", "true");
+    if (myqrFromScanner) startCamera();
+    myqrFromScanner = false;
   }
 
   if (myqrBtn) myqrBtn.addEventListener("click", openMyQr);
