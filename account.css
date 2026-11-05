@@ -163,3 +163,134 @@
 .acct-btn.ghost { background: #f0f3f9; color: #39424f; }
 .acct-btn.primary { background: linear-gradient(180deg, #0b74f0, #0a62e0); color: #fff; box-shadow: 0 6px 16px rgba(10, 100, 230, 0.25); }
 .acct-btn.primary[disabled] { opacity: 0.6; }
+
+/* ---------- account detail (transactions) ---------- */
+.acd-page {
+  position: fixed; inset: 0; z-index: 10003;
+  display: flex; flex-direction: column;
+  background: #f4f6fa; overflow-y: auto;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  opacity: 0; pointer-events: none; visibility: hidden;
+  transition: opacity 180ms ease;
+  -webkit-overflow-scrolling: touch;
+}
+.acd-page.open { opacity: 1; pointer-events: auto; visibility: visible; }
+
+.acd-header {
+  position: relative; z-index: 3; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; padding: 0 10px; color: #fff;
+  background: linear-gradient(180deg, #0b74f0 0%, #0a6ceb 100%);
+}
+.acd-icon-btn {
+  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; background: transparent; color: #fff; cursor: pointer; border-radius: 10px; padding: 0;
+}
+.acd-icon-btn:active { background: rgba(255, 255, 255, 0.14); }
+.acd-icon-btn svg { width: 22px; height: 22px; }
+.acd-title { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: 0.2px; }
+
+.acd-hero {
+  position: relative; flex: 0 0 auto;
+  margin-top: -56px; padding: 78px 16px 26px;
+  background: linear-gradient(180deg, #0b74f0 0%, #0a6be9 100%);
+  border-radius: 0 0 28px 28px;
+  text-align: center;
+  overflow: hidden;
+}
+.acd-hero::after {
+  content: ""; position: absolute; right: -30px; top: 40px; width: 220px; height: 220px;
+  background:
+    radial-gradient(ellipse 44% 22% at 50% 30%, rgba(255, 255, 255, 0.07) 0 60%, transparent 62%),
+    radial-gradient(ellipse 40% 20% at 44% 62%, rgba(255, 255, 255, 0.06) 0 60%, transparent 62%);
+  transform: rotate(-24deg); pointer-events: none;
+}
+.acd-pill-wrap { position: relative; display: inline-flex; flex-direction: column; align-items: center; }
+.acd-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 14px 0 16px; border: 0; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16); color: #fff;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  max-width: 84vw;
+}
+.acd-pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acd-pill svg { width: 16px; height: 16px; flex: 0 0 auto; opacity: 0.9; }
+.acd-menu {
+  position: fixed; top: 120px; left: 16px;
+  width: min(330px, 90vw); padding: 6px;
+  z-index: 10006;
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(6, 30, 70, 0.22);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.acd-menu[hidden] { display: none; }
+.acd-menu button {
+  border: 0; background: transparent; text-align: left;
+  padding: 11px 12px; border-radius: 10px; cursor: pointer;
+  font-size: 13.5px; font-family: inherit; color: #1b2230;
+}
+.acd-menu button small { display: block; margin-top: 2px; font-size: 11.5px; color: #8a93a5; }
+.acd-menu button:active { background: #eef4ff; }
+.acd-menu button.on { background: #eaf2ff; color: #0a66e8; font-weight: 600; }
+
+.acd-balance {
+  position: relative; z-index: 2;
+  margin: 16px 0 0; font-size: 33px; font-weight: 700; color: #fff; letter-spacing: 0.4px;
+}
+.acd-balance small { font-size: 17px; font-weight: 700; margin-left: 6px; letter-spacing: 0.6px; }
+
+.acd-body { flex: 1 0 auto; padding: 18px 16px 96px; }
+.acd-body-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.acd-section-title {
+  margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #5c6675;
+}
+.acd-more {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 0; background: transparent; color: #d0453f;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; padding: 4px 0;
+}
+.acd-more svg { width: 15px; height: 15px; }
+
+.acd-list { list-style: none; margin: 0; padding: 0; }
+.acd-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 2px 15px; border-bottom: 1px solid #e8ecf3;
+}
+.acd-avatar {
+  flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #e8f0fd; color: #0a4fb4;
+  font-size: 10px; font-weight: 800; line-height: 1.05; letter-spacing: 0.4px;
+}
+.acd-avatar em { font-style: normal; font-size: 6.5px; opacity: 0.75; letter-spacing: 0.2px; }
+.acd-main { flex: 1; min-width: 0; }
+.acd-row-title { margin: 0 0 3px; font-size: 15px; font-weight: 500; color: #1a1f28; line-height: 1.35; }
+.acd-row-time { margin: 0; font-size: 12.5px; color: #8a93a5; }
+.acd-amount { flex: 0 0 auto; font-size: 14.5px; font-weight: 600; padding-top: 2px; white-space: nowrap; }
+.acd-amount.in { color: #12a150; }
+.acd-amount.out { color: #d92d20; }
+
+.acd-empty { margin: 26px 0; text-align: center; font-size: 14px; color: #8a93a5; }
+.acd-note { margin: 14px 0 0; text-align: center; font-size: 11.5px; color: #9aa3b4; }
+
+.acd-foot {
+  position: sticky; bottom: 0; z-index: 4; flex: 0 0 auto;
+  padding: 10px 14px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(244, 246, 250, 0) 0%, #f4f6fa 34%);
+}
+.acd-export {
+  width: 100%; height: 52px; border-radius: 14px;
+  border: 1.6px solid #0a66e8; background: #fff; color: #0a66e8;
+  font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(10, 100, 230, 0.14);
+}
+.acd-export:active { background: #eef4ff; }
+
+.acd-toast {
+  position: fixed; left: 50%; bottom: 88px; transform: translate(-50%, 8px);
+  background: rgba(12, 18, 30, 0.9); color: #fff; font-size: 13px;
+  padding: 9px 16px; border-radius: 999px; opacity: 0; pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease; z-index: 10004;
+}
+.acd-toast.show { opacity: 1; transform: translate(-50%, 0); }

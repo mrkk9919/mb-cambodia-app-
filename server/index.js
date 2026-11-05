@@ -242,6 +242,27 @@ async function handleApi(req, res, pathname, query) {
     return send(res, 200, { accounts: store.listAccounts() });
   }
 
+  const activityMatch = pathname.match(/^\/api\/internal\/accounts\/([^/]+)\/activity$/);
+  if (req.method === "GET" && activityMatch) {
+    const accountId = decodeURIComponent(activityMatch[1]);
+    const account = store.getAccount(accountId);
+    if (!account) return send(res, 404, { error: "account not found" });
+    const activity = store.listTransfers(accountId).map((t) => {
+      const outgoing = t.from === accountId;
+      const other = store.getAccount(outgoing ? t.to : t.from) || {};
+      const name = other.name || (outgoing ? t.to : t.from);
+      return {
+        direction: outgoing ? "out" : "in",
+        title: (outgoing ? "Send to " : "Received from ") + name,
+        amount: t.amount,
+        currency: t.currency,
+        createdAt: t.createdAt,
+        ref: t.ref
+      };
+    });
+    return send(res, 200, { account, activity });
+  }
+
   if (req.method === "POST" && pathname === "/api/internal/accounts") {
     const body = await readBody(req);
     const r = store.createAccount({

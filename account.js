@@ -128,7 +128,7 @@
       });
 
       item.setAttribute("data-account-id", a.id);
-      item.addEventListener("click", function () { selectAccount(a); });
+      item.addEventListener("click", function () { openDetail(a); });
 
       item.appendChild(left);
       item.appendChild(copyBtn);
@@ -251,13 +251,16 @@
     });
   });
 
-  // picking a card switches the account selected in the home selector
   function selectAccount(a) {
+    closePage();
+    syncHomeAccount(a);
+  }
+
+  // keep the home selector in sync with the account picked here
+  function syncHomeAccount(a) {
     var selectedLabel = /ti\u1ebft ki\u1ec7m|savings/i.test(a.label || "")
       ? "T\xe0i kho\u1ea3n ti\u1ebft ki\u1ec7m: " + a.id
       : "T\xe0i kho\u1ea3n thanh to\xe1n: " + a.id;
-
-    closePage();
 
     var sel = document.querySelector('[data-testid="button-account-selector"]');
     if (!sel) return;
@@ -330,5 +333,201 @@
     true
   );
 
-  window.mbAccountPage = { open: openPage, close: closePage };
+  /* ---------- account detail (transactions) ---------- */
+
+  var detail = document.getElementById("account-detail");
+  var acdList = document.getElementById("acd-list");
+  var acdEmpty = document.getElementById("acd-empty");
+  var acdNote = document.getElementById("acd-note");
+  var acdBalance = document.getElementById("acd-balance");
+  var acdPill = document.getElementById("acd-pill");
+  var acdPillLabel = document.getElementById("acd-pill-label");
+  var acdMenu = document.getElementById("acd-menu");
+  var acdToast = document.getElementById("acd-toast");
+  var acdToastTimer = null;
+  var detailAccount = null;
+
+  function acdShowToast(text) {
+    if (!acdToast) return;
+    acdToast.textContent = text;
+    acdToast.classList.add("show");
+    window.clearTimeout(acdToastTimer);
+    acdToastTimer = window.setTimeout(function () { acdToast.classList.remove("show"); }, 1900);
+  }
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function formatTime(ms) {
+    var d = new Date(Number(ms) || Date.now());
+    return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) +
+      ", " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear();
+  }
+
+  function accountKind(a) {
+    return /savings/i.test(a.label || "") ? "Savings account" : "Payment account";
+  }
+
+  function sampleActivity(currency) {
+    var m = currency === "KHR" ? 4000 : 1;
+    // "dd/mm/yyyy hh:mm:ss" -> ms
+    function stamp(text) {
+      var parts = text.split(" ");
+      var day = parts[0].split("/");
+      var hm = parts[1].split(":");
+      return new Date(Number(day[2]), Number(day[1]) - 1, Number(day[0]),
+        Number(hm[0]), Number(hm[1]), Number(hm[2])).getTime();
+    }
+    return [
+      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.07 * m, currency: currency, createdAt: stamp("05/11/2026 20:52:00") },
+      { direction: "in", title: "Received from SOKHA CHAN", amount: 0.01 * m, currency: currency, createdAt: stamp("05/11/2026 20:51:00") },
+      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.01 * m, currency: currency, createdAt: stamp("31/10/2026 21:05:00") },
+      { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 3.93 * m, currency: currency, createdAt: stamp("30/10/2026 22:34:00") },
+      { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 50 * m, currency: currency, createdAt: stamp("30/10/2026 20:56:00") },
+      { direction: "out", title: "Send to KHOEURN BUNTHOEURN", amount: 1.99 * m, currency: currency, createdAt: stamp("30/10/2026 20:24:00") },
+      { direction: "out", title: "TOP UP PHONE NUMBER - 0979935566", amount: 1 * m, currency: currency, createdAt: stamp("30/10/2026 19:57:00") },
+      { direction: "out", title: "Send to TIMES MEDIA", amount: 5 * m, currency: currency, createdAt: stamp("30/10/2026 19:19:00") }
+    ];
+  }
+
+  function renderActivity(items, isSample) {
+    acdList.innerHTML = "";
+    if (!items.length) {
+      acdEmpty.hidden = false;
+      acdNote.hidden = true;
+      return;
+    }
+    acdEmpty.hidden = true;
+    acdNote.hidden = !isSample;
+
+    items.forEach(function (t) {
+      var li = document.createElement("li");
+      li.className = "acd-row";
+
+      var avatar = document.createElement("span");
+      avatar.className = "acd-avatar";
+      avatar.setAttribute("aria-hidden", "true");
+      avatar.innerHTML = "MB<em>Cambodia</em>";
+
+      var main = document.createElement("div");
+      main.className = "acd-main";
+      var title = document.createElement("p");
+      title.className = "acd-row-title";
+      title.textContent = t.title;
+      var time = document.createElement("p");
+      time.className = "acd-row-time";
+      time.textContent = formatTime(t.createdAt);
+      main.appendChild(title);
+      main.appendChild(time);
+
+      var amt = document.createElement("span");
+      var incoming = t.direction === "in";
+      amt.className = "acd-amount " + (incoming ? "in" : "out");
+      var value = Number(t.amount) || 0;
+      amt.textContent = (incoming ? "+" : "-") +
+        (t.currency === "KHR"
+          ? Math.round(value).toLocaleString("en-US")
+          : value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })) +
+        " " + t.currency;
+
+      li.appendChild(avatar);
+      li.appendChild(main);
+      li.appendChild(amt);
+      acdList.appendChild(li);
+    });
+  }
+
+  function renderDetailHero(a) {
+    if (!a) return;
+    if (acdPillLabel) acdPillLabel.textContent = accountKind(a) + ": " + a.id;
+    if (acdBalance) {
+      acdBalance.innerHTML = money(a.balance, a.currency) + " <small>" + a.currency + "</small>";
+    }
+  }
+
+  function loadActivity(a) {
+    renderActivity([], false);
+    acdEmpty.hidden = true;
+    fetch("/api/internal/accounts/" + encodeURIComponent(a.id) + "/activity", { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        var items = (data && data.activity) || [];
+        if (items.length) renderActivity(items, false);
+        else renderActivity(sampleActivity(a.currency), true);
+      })
+      .catch(function () {
+        renderActivity(sampleActivity(a.currency), true);
+      });
+  }
+
+  function openDetail(a) {
+    if (!detail) return;
+    detailAccount = a;
+    renderDetailHero(a);
+    loadActivity(a);
+    if (acdMenu) { acdMenu.hidden = true; acdPill.setAttribute("aria-expanded", "false"); }
+    detail.classList.add("open");
+    detail.setAttribute("aria-hidden", "false");
+  }
+
+  function closeDetail() {
+    if (!detail) return;
+    detail.classList.remove("open");
+    detail.setAttribute("aria-hidden", "true");
+    if (acdMenu) acdMenu.hidden = true;
+  }
+
+  var acdBack = document.getElementById("acd-back");
+  if (acdBack) acdBack.addEventListener("click", closeDetail);
+  var acdRefresh = document.getElementById("acd-refresh");
+  if (acdRefresh) {
+    acdRefresh.addEventListener("click", function () {
+      if (detailAccount) {
+        loadActivity(detailAccount);
+        acdShowToast("Transactions refreshed");
+      }
+    });
+  }
+
+  if (acdPill) {
+    acdPill.addEventListener("click", function () {
+      if (!acdMenu) return;
+      var open = acdMenu.hidden;
+      if (open) {
+        var rect = acdPill.getBoundingClientRect();
+        acdMenu.style.top = Math.round(rect.bottom + 6) + "px";
+        acdMenu.style.left = Math.round(rect.left) + "px";
+        var accounts = currentAccounts || DEMO_ACCOUNTS;
+        acdMenu.innerHTML = "";
+        accounts.forEach(function (a) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.setAttribute("data-account-id", a.id);
+          if (detailAccount && a.id === detailAccount.id) b.className = "on";
+          b.innerHTML = accountKind(a) + ": " + a.id +
+            "<small>" + money(a.balance, a.currency) + " " + a.currency + "</small>";
+          b.addEventListener("click", function () {
+            detailAccount = a;
+            renderDetailHero(a);
+            loadActivity(a);
+            syncHomeAccount(a);
+            acdMenu.hidden = true;
+            acdPill.setAttribute("aria-expanded", "false");
+          });
+          acdMenu.appendChild(b);
+        });
+      }
+      acdMenu.hidden = !open;
+      acdPill.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+
+  var acdMore = document.getElementById("acd-more");
+  if (acdMore) acdMore.addEventListener("click", function () { acdShowToast("Full statement is a demo feature"); });
+  var acdExport = document.getElementById("acd-export");
+  if (acdExport) acdExport.addEventListener("click", function () { acdShowToast("Statement export is a demo feature"); });
+
+  window.mbAccountPage = { open: openPage, close: closePage, detail: openDetail };
 })();
