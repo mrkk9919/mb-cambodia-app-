@@ -112,12 +112,45 @@
       copyBtn.setAttribute("aria-label", "Copy account number " + a.id);
       copyBtn.setAttribute("data-copy-value", a.id);
       copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
-      copyBtn.addEventListener("click", function () { copyTarget(copyBtn); });
+      copyBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        copyTarget(copyBtn);
+      });
+
+      item.setAttribute("data-account-id", a.id);
+      item.addEventListener("click", function () { selectAccount(a); });
 
       item.appendChild(left);
       item.appendChild(copyBtn);
       listEl.appendChild(item);
     });
+  }
+
+  // picking a card switches the account selected in the home selector
+  function selectAccount(a) {
+    var selectedLabel = /ti\u1ebft ki\u1ec7m|savings/i.test(a.label || "")
+      ? "T\xe0i kho\u1ea3n ti\u1ebft ki\u1ec7m: " + a.id
+      : "T\xe0i kho\u1ea3n thanh to\xe1n: " + a.id;
+
+    closePage();
+
+    var sel = document.querySelector('[data-testid="button-account-selector"]');
+    if (!sel) return;
+
+    var optId = a.id === "000123456789" ? "option-account-payment"
+      : (a.id === "000987654321" ? "option-account-savings" : "");
+
+    if (optId) {
+      // let React own the state when its own menu knows this account
+      sel.click();
+      window.setTimeout(function () {
+        var opt = document.querySelector('[data-testid="' + optId + '"]');
+        if (opt) opt.click();
+      }, 80);
+    } else {
+      var span = sel.querySelector("span");
+      if (span) span.textContent = selectedLabel;
+    }
   }
 
   var loading = false;
