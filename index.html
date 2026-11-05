@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="./assets/index-BIeGMN93.css">
     <link rel="stylesheet" href="./scan.css?v=3">
     <link rel="stylesheet" href="./pay-flow.css?v=1">
+    <link rel="stylesheet" href="./account.css?v=1">
   </head>
   <body>
     <div id="root"></div>
@@ -269,9 +270,57 @@
           <button class="myqr-close" id="myqr-close" type="button">Close</button>
         </section>
       </div>
+
+      <!-- account page (opened from THÊM) -->
+      <div class="acct-page" id="account-page" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Account">
+        <header class="acct-header">
+          <button class="acct-icon-btn" id="acct-back" type="button" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <h1 class="acct-title">Account</h1>
+          <button class="acct-icon-btn" id="acct-home" type="button" aria-label="Home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+          </button>
+        </header>
+        <div class="acct-blue">
+          <section class="acct-balance-card">
+            <div class="acct-row">
+              <div>
+                <p class="acct-label">Balance</p>
+                <p class="acct-amount" id="acct-balance-amount">0</p>
+              </div>
+              <div class="acct-currency">
+                <span class="acct-cur-badge khr" aria-hidden="true">&#x17DB;</span>
+                <span>KHR</span>
+              </div>
+            </div>
+            <div class="acct-swap" aria-hidden="true">
+              <span class="acct-swap-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h13m0 0-3.5-3.5M17 9l-3.5 3.5"/><path d="M20 15H7m0 0 3.5-3.5M7 15l3.5 3.5"/></svg>
+              </span>
+            </div>
+            <div class="acct-row">
+              <div>
+                <p class="acct-label">Exchanged</p>
+                <p class="acct-amount" id="acct-exchange-amount">0</p>
+              </div>
+              <div class="acct-currency">
+                <span class="acct-cur-badge usd" aria-hidden="true">$</span>
+                <span>USD</span>
+              </div>
+            </div>
+          </section>
+        </div>
+        <section class="acct-sheet">
+          <h2 class="acct-sheet-title" id="acct-list-title">List of Accounts</h2>
+          <div class="acct-list" id="acct-list"></div>
+        </section>
+        <div class="acct-toast" id="acct-toast" role="status" aria-live="polite"></div>
+      </div>
     <script src="./jsqr.min.js"></script>
     <script src="./qrcode.min.js"></script>
     <script src="./scan.js?v=6"></script>
     <script src="./transfer-entry.js?v=1"></script>
+    <script src="./account.js?v=1"></script>
   </body>
 </html>
