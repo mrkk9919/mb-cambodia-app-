@@ -128,3 +128,38 @@
   .acct-amount { font-size: 27px; }
   .acct-sheet-title { font-size: 18px; }
 }
+
+/* ---------- add account ---------- */
+.acct-sheet-head { display: flex; align-items: center; justify-content: space-between; margin: 2px 4px 14px; }
+.acct-add {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 32px; padding: 0 13px 0 9px; border-radius: 999px; border: 0;
+  background: #e9f1ff; color: #0a66e8; font-size: 13px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+}
+.acct-add:active { background: #dbe8ff; }
+.acct-add svg { width: 15px; height: 15px; }
+
+.acct-form { margin: 6px 2px 0; }
+.acct-form-title { margin: 6px 2px 16px; font-size: 17px; font-weight: 700; color: #12161d; }
+.acct-field { display: block; margin-bottom: 14px; }
+.acct-field > span { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 600; color: #6a7385; }
+.acct-field input {
+  width: 100%; height: 46px; border-radius: 12px; border: 1px solid #dde4ef;
+  background: #fff; padding: 0 14px; font-size: 15px; color: #12161d;
+  font-family: inherit; outline: none; box-sizing: border-box;
+}
+.acct-field input:focus { border-color: #0a66e8; box-shadow: 0 0 0 3px rgba(10, 102, 232, 0.12); }
+.acct-seg { display: flex; gap: 8px; }
+.acct-seg button {
+  flex: 1; height: 44px; border-radius: 12px; border: 1px solid #dde4ef;
+  background: #fff; font-size: 14px; font-weight: 600; color: #4b5567;
+  font-family: inherit; cursor: pointer;
+}
+.acct-seg button.on { border-color: #0a66e8; background: #eaf2ff; color: #0a66e8; }
+.acct-form-err { margin: 0 0 8px; min-height: 16px; font-size: 13px; color: #c2413a; }
+.acct-form-actions { display: flex; gap: 10px; margin-top: 6px; }
+.acct-btn { flex: 1; height: 50px; border-radius: 14px; border: 0; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.acct-btn.ghost { background: #f0f3f9; color: #39424f; }
+.acct-btn.primary { background: linear-gradient(180deg, #0b74f0, #0a62e0); color: #fff; box-shadow: 0 6px 16px rgba(10, 100, 230, 0.25); }
+.acct-btn.primary[disabled] { opacity: 0.6; }

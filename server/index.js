@@ -242,6 +242,18 @@ async function handleApi(req, res, pathname, query) {
     return send(res, 200, { accounts: store.listAccounts() });
   }
 
+  if (req.method === "POST" && pathname === "/api/internal/accounts") {
+    const body = await readBody(req);
+    const r = store.createAccount({
+      name: String(body.name || ""),
+      type: String(body.type || ""),
+      currency: String(body.currency || ""),
+      balance: body.balance
+    });
+    if (!r.ok) return send(res, 400, { error: r.message, code: r.code });
+    return send(res, 201, { account: r.account, accounts: r.accounts });
+  }
+
   if (req.method === "POST" && pathname === "/api/internal/transfer") {
     const body = await readBody(req);
     const result = store.transfer({

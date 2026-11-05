@@ -112,6 +112,37 @@ function listAccounts() {
   return load().accounts.map((a) => Object.assign({}, a));
 }
 
+function createAccount({ name, type, currency, balance }) {
+  const st = load();
+  const cur = String(currency || "").toUpperCase();
+  if (cur !== "USD" && cur !== "KHR") {
+    return { ok: false, code: "BAD_CURRENCY", message: "币种仅支持 USD / KHR" };
+  }
+  const kind = String(type || "Payment");
+  if (kind !== "Payment" && kind !== "Savings") {
+    return { ok: false, code: "BAD_TYPE", message: "账户类型仅支持 Payment / Savings" };
+  }
+  const bal = balance === "" || balance === undefined || balance === null ? 0 : Number(balance);
+  if (!Number.isFinite(bal) || bal < 0) {
+    return { ok: false, code: "BAD_BALANCE", message: "初始余额不合法" };
+  }
+  let id;
+  do {
+    id = "000" + String(Math.floor(100000000 + Math.random() * 899999999));
+  } while (st.accounts.some((a) => a.id === id));
+
+  const account = {
+    id,
+    label: cur + " · " + kind,
+    currency: cur,
+    balance: round(bal, cur)
+  };
+  if (name) account.name = String(name).slice(0, 40);
+  st.accounts.push(account);
+  persist();
+  return { ok: true, account, accounts: listAccounts() };
+}
+
 function getAccount(id) {
   return load().accounts.find((a) => a.id === id) || null;
 }
@@ -181,6 +212,7 @@ module.exports = {
   getPayment,
   updatePayment,
   listAccounts,
+  createAccount,
   getAccount,
   transfer,
   listTransfers

@@ -10,6 +10,15 @@
   var exEl = document.getElementById("acct-exchange-amount");
   var toast = document.getElementById("acct-toast");
   var toastTimer = null;
+  var form = document.getElementById("acct-form");
+  var addBtn = document.getElementById("acct-add-btn");
+  var formErr = document.getElementById("acct-f-err");
+  var fName = document.getElementById("acct-f-name");
+  var fBal = document.getElementById("acct-f-bal");
+  var fSubmit = document.getElementById("acct-f-submit");
+  var typeGroup = document.getElementById("acct-f-type");
+  var curGroup = document.getElementById("acct-f-cur");
+  var currentAccounts = null;
 
   var HOLDER = "SOKHA CHAN";
 
@@ -63,6 +72,7 @@
   }
 
   function render(accounts) {
+    currentAccounts = accounts;
     var khr = accounts.filter(function (a) { return a.currency === "KHR"; });
     var usd = accounts.filter(function (a) { return a.currency === "USD"; });
     var khrTotal = khr.reduce(function (s, a) { return s + (Number(a.balance) || 0); }, 0);
@@ -126,6 +136,108 @@
     });
   }
 
+  /* ---------- add account ---------- */
+
+  function segValue(group) {
+    var on = group.querySelector("button.on");
+    return on ? on.getAttribute("data-value") : "";
+  }
+
+  function showForm(show) {
+    if (!form || !listEl) return;
+    form.hidden = !show;
+    listEl.hidden = show;
+    if (addBtn) addBtn.hidden = show;
+    if (show) {
+      formErr.textContent = "";
+      fBal.value = "0";
+      if (titleEl) titleEl.textContent = "New Account";
+    }
+  }
+
+  function localAdd(payload) {
+    var accounts = currentAccounts ? currentAccounts.slice() : DEMO_ACCOUNTS.slice();
+    var id;
+    do {
+      id = "000" + String(Math.floor(100000000 + Math.random() * 899999999));
+    } while (accounts.some(function (a) { return a.id === id; }));
+    accounts.push({
+      id: id,
+      label: payload.currency + " \u00b7 " + payload.type,
+      currency: payload.currency,
+      balance: Number(payload.balance) || 0,
+      name: payload.name
+    });
+    render(accounts);
+  }
+
+  function submitForm(e) {
+    e.preventDefault();
+    var payload = {
+      name: (fName && fName.value.trim()) || HOLDER,
+      type: segValue(typeGroup) || "Payment",
+      currency: segValue(curGroup) || "USD",
+      balance: fBal ? fBal.value : "0"
+    };
+    var bal = Number(payload.balance);
+    if (!Number.isFinite(bal) || bal < 0) {
+      formErr.textContent = "Initial balance must be 0 or more.";
+      return;
+    }
+    formErr.textContent = "";
+    fSubmit.disabled = true;
+
+    fetch("/api/internal/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      cache: "no-store"
+    })
+      .then(function (res) {
+        return res.json().then(function (body) {
+          if (!res.ok) throw new Error((body && body.error) || ("HTTP " + res.status));
+          return body;
+        });
+      })
+      .then(function (body) {
+        var accounts = body.accounts && body.accounts.length ? body.accounts : null;
+        if (accounts) render(accounts);
+        else localAdd(payload);
+        showForm(false);
+        showToast("Account added");
+      })
+      .catch(function (err) {
+        // no backend (static Pages): add into the demo list
+        localAdd(payload);
+        showForm(false);
+        showToast("Account added (demo only)");
+        if (err && err.message) console.warn("[account] create failed:", err.message);
+      })
+      .then(function () {
+        fSubmit.disabled = false;
+        if (titleEl) titleEl.textContent = "List of Accounts (" + ((currentAccounts && currentAccounts.length) || 0) + ")";
+      });
+  }
+
+  if (addBtn) addBtn.addEventListener("click", function () { showForm(true); });
+  if (form) form.addEventListener("submit", submitForm);
+  var cancelBtn = document.getElementById("acct-f-cancel");
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", function () {
+      showForm(false);
+      if (titleEl) titleEl.textContent = "List of Accounts (" + ((currentAccounts && currentAccounts.length) || 0) + ")";
+    });
+  }
+  [typeGroup, curGroup].forEach(function (group) {
+    if (!group) return;
+    group.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-value]");
+      if (!btn) return;
+      Array.prototype.forEach.call(group.querySelectorAll("button"), function (b) { b.classList.remove("on"); });
+      btn.classList.add("on");
+    });
+  });
+
   // picking a card switches the account selected in the home selector
   function selectAccount(a) {
     var selectedLabel = /ti\u1ebft ki\u1ec7m|savings/i.test(a.label || "")
@@ -157,6 +269,8 @@
   function openPage() {
     page.classList.add("open");
     page.setAttribute("aria-hidden", "false");
+    showForm(false);
+    if (titleEl) titleEl.textContent = "List of Accounts" + (currentAccounts ? " (" + currentAccounts.length + ")" : "");
     if (loading) return;
     loading = true;
     fetch("/api/internal/accounts", { headers: { Accept: "application/json" }, cache: "no-store" })

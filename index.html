@@ -312,8 +312,45 @@
           </section>
         </div>
         <section class="acct-sheet">
-          <h2 class="acct-sheet-title" id="acct-list-title">List of Accounts</h2>
+          <div class="acct-sheet-head">
+            <h2 class="acct-sheet-title" id="acct-list-title">List of Accounts</h2>
+            <button class="acct-add" id="acct-add-btn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add
+            </button>
+          </div>
           <div class="acct-list" id="acct-list"></div>
+
+          <form class="acct-form" id="acct-form" hidden>
+            <h3 class="acct-form-title">New Account</h3>
+            <label class="acct-field">
+              <span>Account holder</span>
+              <input id="acct-f-name" type="text" value="SOKHA CHAN" autocomplete="off" />
+            </label>
+            <div class="acct-field">
+              <span>Account type</span>
+              <div class="acct-seg" id="acct-f-type" role="group" aria-label="Account type">
+                <button type="button" data-value="Payment" class="on">Payment</button>
+                <button type="button" data-value="Savings">Savings</button>
+              </div>
+            </div>
+            <div class="acct-field">
+              <span>Currency</span>
+              <div class="acct-seg" id="acct-f-cur" role="group" aria-label="Currency">
+                <button type="button" data-value="USD" class="on">USD</button>
+                <button type="button" data-value="KHR">KHR</button>
+              </div>
+            </div>
+            <label class="acct-field">
+              <span>Initial balance</span>
+              <input id="acct-f-bal" type="number" min="0" step="0.01" value="0" />
+            </label>
+            <p class="acct-form-err" id="acct-f-err" role="status" aria-live="polite"></p>
+            <div class="acct-form-actions">
+              <button type="button" class="acct-btn ghost" id="acct-f-cancel">Cancel</button>
+              <button type="submit" class="acct-btn primary" id="acct-f-submit">Add Account</button>
+            </div>
+          </form>
         </section>
         <div class="acct-toast" id="acct-toast" role="status" aria-live="polite"></div>
       </div>
