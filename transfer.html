@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Internal transfer — MB Cambodia</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./transfer.css?v=1">
+  </head>
+  <body>
+    <header class="tf-header">
+      <a class="tf-back" href="./index.html" aria-label="Go back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5" /><path d="M12 19l-7-7 7-7" />
+        </svg>
+      </a>
+      <h1>Internal transfer</h1>
+    </header>
+
+    <main class="tf-main">
+      <section class="tf-card" id="tf-accounts">
+        <p class="tf-empty">Loading accounts…</p>
+      </section>
+
+      <section class="tf-card">
+        <h2 class="tf-card-title">Transfer between your accounts</h2>
+        <p class="tf-hint">Same-currency only. This moves money inside the prototype ledger — it never touches Bakong or a real account.</p>
+
+        <label class="tf-field">
+          <span class="tf-label">From</span>
+          <select id="tf-from" class="tf-input"></select>
+        </label>
+        <label class="tf-field">
+          <span class="tf-label">To</span>
+          <select id="tf-to" class="tf-input"></select>
+        </label>
+        <label class="tf-field">
+          <span class="tf-label">Amount</span>
+          <div class="tf-amount">
+            <span id="tf-cur">$</span>
+            <input id="tf-amount" class="tf-input tf-input-amount" inputmode="decimal" placeholder="0.00" autocomplete="off" />
+          </div>
+        </label>
+        <label class="tf-field">
+          <span class="tf-label">Note (optional)</span>
+          <input id="tf-note" class="tf-input" maxlength="120" placeholder="e.g. savings top-up" />
+        </label>
+
+        <p class="tf-status" id="tf-status" role="status" aria-live="polite" hidden></p>
+        <button class="tf-btn" id="tf-submit" type="button" disabled>Transfer</button>
+      </section>
+
+      <section class="tf-card">
+        <h2 class="tf-card-title">Recent transfers</h2>
+        <ul class="tf-list" id="tf-history"><li class="tf-empty">No transfers yet.</li></ul>
+      </section>
+    </main>
+
+    <section class="tf-sheet" id="tf-sheet" aria-hidden="true">
+      <div class="tf-sheet-body" role="dialog" aria-modal="true" aria-label="Transfer completed">
+        <div class="tf-check">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
+        </div>
+        <h2>Transfer completed</h2>
+        <p class="tf-sheet-amount" id="tf-sheet-amount">$ 0.00</p>
+        <div class="tf-sheet-rows">
+          <div><span>Reference</span><span id="tf-sheet-ref">—</span></div>
+          <div><span>From</span><span id="tf-sheet-from">—</span></div>
+          <div><span>To</span><span id="tf-sheet-to">—</span></div>
+          <div><span>Time</span><span id="tf-sheet-time">—</span></div>
+        </div>
+        <button class="tf-btn" id="tf-sheet-done" type="button">Done</button>
+      </div>
+    </section>
+
+    <script src="./transfer.js?v=1"></script>
+  </body>
+</html>

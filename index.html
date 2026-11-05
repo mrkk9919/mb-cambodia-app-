@@ -12,13 +12,14 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="MB Cambodia — Banking Home UI Prototype" />
     <meta name="twitter:description" content="MB Cambodia mobile banking home screen UI prototype — demo data only, no live transactions." />
-    <link rel="icon" type="image/svg+xml" href="/mb-cambodia-app-/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/mb-cambodia-app-/assets/index-tGulQzRr.js"></script>
-    <link rel="stylesheet" crossorigin href="/mb-cambodia-app-/assets/index-BIeGMN93.css">
-    <link rel="stylesheet" href="./scan.css?v=1">
+    <script defer src="./assets/index-tGulQzRr.js"></script>
+    <link rel="stylesheet" href="./assets/index-BIeGMN93.css">
+    <link rel="stylesheet" href="./scan.css?v=3">
+    <link rel="stylesheet" href="./pay-flow.css?v=1">
   </head>
   <body>
     <div id="root"></div>
@@ -40,8 +41,14 @@
             <path d="M12 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1>Scan QR</h1>
-        <span class="header-balance" aria-hidden="true"></span>
+        <h1>Scan to Pay</h1>
+        <button class="header-icon" id="qr-flash" type="button" aria-pressed="false" aria-label="Toggle flashlight">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2L4.5 13.5h6L10 22l8.5-11.5h-6L13 2z" />
+          </svg>
+          <span class="flash-state" id="qr-flash-state" aria-live="polite" hidden></span>
+        </button>
       </header>
 
       <section class="scanner-content" aria-label="QR code scanner">
@@ -62,14 +69,27 @@
         <p class="camera-hint" id="qr-camera-hint" hidden></p>
 
         <div class="scanner-actions">
-          <button class="scanner-action" id="qr-flash" type="button" aria-pressed="false">
-            <span>Flash</span>
-            <span class="flash-state" id="qr-flash-state" aria-live="polite"></span>
-          </button>
-          <button class="scanner-action upload-action" id="qr-upload" type="button">
-            <span>Upload QR</span>
+          <button class="scanner-action scanner-action--icon" id="qr-upload" type="button">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2.5" />
+              <circle cx="8.5" cy="8.5" r="1.6" />
+              <path d="M4 17l5-5 4 4 3-3 4 4" />
+            </svg>
+            <span>Gallery</span>
           </button>
           <input class="file-input" id="qr-file" type="file" accept="image/*" aria-label="Choose a QR code image" />
+          <button class="scanner-action scanner-action--icon" id="qr-myqr" type="button">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <path d="M14 14h3v3h-3z" />
+              <path d="M21 14v7H14" />
+            </svg>
+            <span>My QR Code</span>
+          </button>
         </div>
 
         <p class="selected-file" id="qr-selected-file" role="status" hidden>
@@ -88,64 +108,171 @@
       <div class="system-home-indicator" aria-hidden="true"><span></span></div>
       <div class="scan-toast" id="qr-toast" role="status" aria-live="polite"></div>
 
-      <!-- payment sheet -->
-      <div id="qr-pay" aria-hidden="true">
-        <div class="pay-backdrop"></div>
+      <!-- KHQR payment flow: enter amount -> confirm -> success -->
+      <section id="pay-flow" aria-hidden="true" aria-label="KHQR payment">
 
-        <section class="pay-sheet" role="dialog" aria-modal="true" aria-label="Payment">
-          <div class="pay-handle" aria-hidden="true"></div>
-          <div class="pay-head">
-            <span class="pay-label">Pay with MB Cambodia</span>
-            <button class="pay-close" id="pay-close" type="button" aria-label="Close payment">&times;</button>
-          </div>
+        <!-- step 1: pay to merchant -->
+        <div class="pf-screen" id="pf-step-amount" data-step="amount">
+          <header class="pf-header">
+            <button class="pf-back" type="button" aria-label="Back to scanner">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
+            </button>
+            <h1>Pay to Merchant</h1>
+            <span class="pf-header-spacer" aria-hidden="true"></span>
+          </header>
 
-          <div class="pay-merchant">
-            <div class="pay-avatar" id="pay-avatar" aria-hidden="true">QR</div>
-            <div>
-              <p class="pay-name" id="pay-name">Merchant</p>
-              <p class="pay-sub" id="pay-sub">KHQR</p>
+          <div class="pf-body">
+            <div class="pf-merchant">
+              <span class="pf-merchant-icon" id="pf-merchant-icon" aria-hidden="true">M</span>
+              <div>
+                <p class="pf-label">Merchant Name</p>
+                <p class="pf-merchant-name" id="pf-merchant">Merchant</p>
+              </div>
+            </div>
+
+            <div class="pf-row pf-row--bank">
+              <div>
+                <p class="pf-label">Recipient Bank</p>
+                <p class="pf-bank-name" id="pf-bank">Bakong member bank</p>
+                <p class="pf-bank-sub" id="pf-bank-sub" hidden></p>
+              </div>
+              <span class="pf-bank-badge" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6" /><path d="M5 10v8h14v-8" /><path d="M9 18v-4h6v4" /></svg>
+              </span>
+            </div>
+
+            <label class="pf-field">
+              <span class="pf-label">Payment Amount</span>
+              <span class="pf-amount">
+                <span class="pf-cur" id="pf-cur">$</span>
+                <input class="pf-amount-input" id="pf-amount" inputmode="decimal" placeholder="0.00" aria-label="Payment amount" autocomplete="off" />
+              </span>
+            </label>
+
+            <label class="pf-field">
+              <span class="pf-label">Note (Optional)</span>
+              <input class="pf-input" id="pf-note" maxlength="80" placeholder="Add a note" autocomplete="off" />
+            </label>
+
+            <div class="pf-row pf-row--from">
+              <div>
+                <p class="pf-label">Pay From</p>
+                <div class="pf-account">
+                  <span class="pf-account-mark" aria-hidden="true">MB</span>
+                  <div>
+                    <p class="pf-account-name">MB Bank Cambodia</p>
+                    <p class="pf-account-sub" id="pf-from-account">USD Account (•••1234)</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="pay-amount-box">
-            <div class="pay-amount-line">
-              <span class="pay-cur" id="pay-cur">$</span>
-              <input class="pay-amount" id="pay-amount" inputmode="decimal" placeholder="0.00"
-                     aria-label="Amount" autocomplete="off" />
+          <footer class="pf-footer">
+            <button class="pf-primary" id="pf-next" type="button" disabled>Next</button>
+          </footer>
+        </div>
+
+        <!-- step 2: confirm -->
+        <div class="pf-screen" id="pf-step-confirm" data-step="confirm" hidden>
+          <header class="pf-header">
+            <button class="pf-back" type="button" aria-label="Back to amount">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
+            </button>
+            <h1>Confirm Payment</h1>
+            <span class="pf-header-spacer" aria-hidden="true"></span>
+          </header>
+
+          <div class="pf-body">
+            <div class="pf-confirm-card">
+              <p class="pf-label">Pay To</p>
+              <div class="pf-confirm-merchant">
+                <span class="pf-merchant-icon" id="pf-confirm-icon" aria-hidden="true">M</span>
+                <p class="pf-merchant-name" id="pf-confirm-merchant">Merchant</p>
+              </div>
+              <div class="pf-confirm-bank">
+                <span class="pf-bank-badge" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6" /><path d="M5 10v8h14v-8" /><path d="M9 18v-4h6v4" /></svg>
+                </span>
+                <div>
+                  <p class="pf-label">Recipient Bank</p>
+                  <p class="pf-bank-name" id="pf-confirm-bank">Bakong member bank</p>
+                </div>
+              </div>
             </div>
-            <p class="pay-amount-hint">Amount</p>
+
+            <div class="pf-summary">
+              <div><span>Amount</span><span id="pf-sum-amount">$ 0.00</span></div>
+              <div><span>From Account</span><span id="pf-sum-from">USD Account (•••1234)</span></div>
+              <div><span>Transaction Fee</span><span>$ 0.00</span></div>
+              <div class="pf-summary-total"><span>Total</span><span id="pf-sum-total">$ 0.00</span></div>
+            </div>
+
+            <p class="pf-note-line" id="pf-confirm-note" hidden></p>
+            <p class="pf-status" id="pf-status" role="status" aria-live="polite" hidden></p>
           </div>
 
-          <div class="pay-meta">
-            <div><span>Reference</span><span id="pay-ref">—</span></div>
-            <div><span>Fee</span><span>Free</span></div>
+          <footer class="pf-footer">
+            <button class="pf-primary" id="pf-confirm" type="button">Confirm Payment</button>
+          </footer>
+        </div>
+
+        <!-- step 3: success -->
+        <div class="pf-screen" id="pf-step-success" data-step="success" hidden>
+          <div class="pf-success">
+            <div class="pf-check" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+            </div>
+            <h2>Payment Successful</h2>
+            <p class="pf-success-amount" id="pf-success-amount">$ 0.00</p>
+            <p class="pf-success-merchant" id="pf-success-merchant">Merchant</p>
+
+            <div class="pf-received">
+              <span class="pf-bank-badge" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6" /><path d="M5 10v8h14v-8" /><path d="M9 18v-4h6v4" /></svg>
+              </span>
+              <div>
+                <p class="pf-label">Received by</p>
+                <p class="pf-bank-name" id="pf-success-bank">Bakong member bank</p>
+                <p class="pf-bank-sub" id="pf-success-bank-sub" hidden></p>
+              </div>
+            </div>
+
+            <div class="pf-summary pf-summary--success">
+              <div><span>Transaction ID</span><span id="pf-success-ref">—</span></div>
+              <div><span>Date &amp; Time</span><span id="pf-success-time">—</span></div>
+              <div><span>From Account</span><span id="pf-success-from">USD Account (•••1234)</span></div>
+            </div>
+            <p class="pf-demo-note" id="pf-demo-note" hidden>Demo environment · no real funds moved</p>
           </div>
 
-          <button class="pay-btn" id="pay-confirm" type="button" disabled>Pay now</button>
-          <p class="pay-note">Demo only — no real funds are moved.</p>
-        </section>
-
-        <section class="pay-success" role="dialog" aria-modal="true" aria-label="Payment successful">
-          <div class="success-badge">
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
+          <footer class="pf-footer pf-footer--success">
+            <button class="pf-secondary" id="pf-share" type="button">Share Receipt</button>
+            <button class="pf-primary" id="pf-done" type="button">Done</button>
+          </footer>
+        </div>
+      </section>
+      <!-- my QR code (receive) -->
+      <div class="myqr" id="myqr" aria-hidden="true">
+        <div class="myqr-backdrop" data-myqr-close></div>
+        <section class="myqr-card" role="dialog" aria-modal="true" aria-label="My QR code">
+          <h2 class="myqr-title">My QR Code</h2>
+          <p class="myqr-sub">Let the payer scan this code with any Bakong member app</p>
+          <div class="myqr-box">
+            <img id="myqr-img" alt="My KHQR code" />
+            <p class="myqr-loading" id="myqr-loading">Generating…</p>
           </div>
-          <h2>Payment successful</h2>
-          <p class="success-amount" id="success-amount">$ 0.00</p>
-          <p class="success-to" id="success-to">to Merchant</p>
-          <div class="success-rows">
-            <div><span>Reference</span><span id="success-ref">—</span></div>
-            <div><span>Time</span><span id="success-time">—</span></div>
-            <div><span>Status</span><span>Completed</span></div>
-          </div>
-          <button class="pay-btn" id="pay-done" type="button">Done</button>
+          <p class="myqr-name" id="myqr-name">MB Bank Cambodia</p>
+          <p class="myqr-account" id="myqr-account"></p>
+          <p class="myqr-status" id="myqr-status" role="status" aria-live="polite"></p>
+          <button class="myqr-close" id="myqr-close" type="button">Close</button>
         </section>
       </div>
     </main>
 
     <script src="./jsqr.min.js"></script>
-    <script src="./scan.js?v=1"></script>
+    <script src="./qrcode.min.js"></script>
+    <script src="./scan.js?v=5"></script>
+    <script src="./transfer-entry.js?v=1"></script>
   </body>
 </html>
