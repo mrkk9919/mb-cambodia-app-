@@ -31,6 +31,7 @@
   var stepConfirm = document.getElementById("pf-step-confirm");
   var stepSuccess = document.getElementById("pf-step-success");
   var pfMerchant = document.getElementById("pf-merchant");
+  var pfBillBank = document.getElementById("pf-bill-bank");
   var pfCur = document.getElementById("pf-cur");
   var pfAmount = document.getElementById("pf-amount");
   var pfNote = document.getElementById("pf-note");
@@ -308,6 +309,7 @@
     pfSuccessMerchant.textContent = info.merchant;
     var accountId = String(info.accountId || info.account || "");
     pfConfirmBank.textContent = (accountId ? accountId + " - " : "") + bank;
+    if (pfBillBank) pfBillBank.textContent = bank + (accountId ? " \u00B7 " + accountId : "");
     pfConfirmToMark.textContent = bankMark(bankLabel(bankShort || bank));
     pfSuccessBankMark.textContent = bankMark(bankShort || bank);
     pfSuccessBankShort.textContent = bankShort || bank;
