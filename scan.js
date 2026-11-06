@@ -31,31 +31,41 @@
   var stepConfirm = document.getElementById("pf-step-confirm");
   var stepSuccess = document.getElementById("pf-step-success");
   var pfMerchant = document.getElementById("pf-merchant");
-  var pfMerchantIcon = document.getElementById("pf-merchant-icon");
-  var pfBank = document.getElementById("pf-bank");
-  var pfBankSub = document.getElementById("pf-bank-sub");
   var pfCur = document.getElementById("pf-cur");
   var pfAmount = document.getElementById("pf-amount");
   var pfNote = document.getElementById("pf-note");
+  var pfFromName = document.getElementById("pf-from-name");
   var pfFromAccount = document.getElementById("pf-from-account");
+  var pfFromBalance = document.getElementById("pf-from-balance");
   var pfNext = document.getElementById("pf-next");
+  var pfConfirmAmount = document.getElementById("pf-confirm-amount");
+  var pfConfirmCur = document.getElementById("pf-confirm-cur");
+  var pfConfirmUsd = document.getElementById("pf-confirm-usd");
+  var pfConfirmFromName = document.getElementById("pf-confirm-from-name");
   var pfConfirmMerchant = document.getElementById("pf-confirm-merchant");
-  var pfConfirmIcon = document.getElementById("pf-confirm-icon");
   var pfConfirmBank = document.getElementById("pf-confirm-bank");
-  var pfSumAmount = document.getElementById("pf-sum-amount");
+  var pfConfirmToMark = document.getElementById("pf-confirm-to-mark");
   var pfSumFrom = document.getElementById("pf-sum-from");
+  var pfRate = document.getElementById("pf-rate");
   var pfSumTotal = document.getElementById("pf-sum-total");
   var pfConfirmNote = document.getElementById("pf-confirm-note");
   var pfStatus = document.getElementById("pf-status");
   var pfConfirmBtn = document.getElementById("pf-confirm");
   var pfSuccessAmount = document.getElementById("pf-success-amount");
+  var pfSuccessTime = document.getElementById("pf-success-time");
+  var pfSuccessFromName = document.getElementById("pf-success-from-name");
+  var pfSuccessFrom = document.getElementById("pf-success-from");
   var pfSuccessMerchant = document.getElementById("pf-success-merchant");
   var pfSuccessBank = document.getElementById("pf-success-bank");
-  var pfSuccessBankSub = document.getElementById("pf-success-bank-sub");
-  var pfDemoNote = document.getElementById("pf-demo-note");
+  var pfSuccessBankMark = document.getElementById("pf-success-bank-mark");
+  var pfSuccessBankShort = document.getElementById("pf-success-bank-short");
   var pfSuccessRef = document.getElementById("pf-success-ref");
-  var pfSuccessTime = document.getElementById("pf-success-time");
-  var pfSuccessFrom = document.getElementById("pf-success-from");
+  var pfSuccessRefno = document.getElementById("pf-success-refno");
+  var pfSuccessNote = document.getElementById("pf-success-note");
+  var pfCopyRef = document.getElementById("pf-copy-ref");
+  var pfActionNew = document.getElementById("pf-action-new");
+  var pfActionShot = document.getElementById("pf-action-shot");
+  var pfDemoNote = document.getElementById("pf-demo-note");
   var pfShare = document.getElementById("pf-share");
   var pfDone = document.getElementById("pf-done");
 
@@ -108,11 +118,48 @@
     return "MB" + t + r;
   }
 
+  var USD_KHR_RATE = 4083;
+
   function nowLabel() {
     var d = new Date();
     function p(n) { return n < 10 ? "0" + n : "" + n; }
-    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
-      " " + p(d.getHours()) + ":" + p(d.getMinutes());
+    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) +
+      ", " + p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear();
+  }
+
+  function otherCurrency(currency) { return currency === "KHR" ? "USD" : "KHR"; }
+
+  function convertAmount(amount, currency) {
+    return currency === "KHR" ? amount / USD_KHR_RATE : amount * USD_KHR_RATE;
+  }
+
+  function currencyAmount(amount, currency) {
+    return money(amount, currency) + " " + currency;
+  }
+
+  // stable 8-digit reference number derived from the transaction ref
+  function refNumber(ref) {
+    var h = 0;
+    String(ref || "").split("").forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 100000000; });
+    return ("00000000" + h).slice(-8);
+  }
+
+  function bankLabel(bank) {
+    var name = String(bank || "").replace(/\(.*?\)/g, "")
+      .replace(/\b(Bank|Plc\.?|PLC|Ltd\.?|Cambodia)\b/gi, "").trim();
+    var first = name.split(/\s+/)[0] || "";
+    return first;
+  }
+
+  function bankMark(bank) {
+    var name = String(bank || "").replace(/\b(Bank|Plc\.?|Ltd\.?)\b/gi, "").trim();
+    if (!name) return "B";
+    return name.charAt(0).toUpperCase();
+  }
+
+  function sizeAmountInput() {
+    var len = String(pfAmount.value || pfAmount.placeholder || "0.00").length;
+    pfAmount.style.width = Math.max(3.4, len + 0.6).toFixed(1) + "ch";
   }
 
   /* ---------- payload parsing ---------- */
@@ -168,7 +215,7 @@
   /* ---------- KHQR payment flow: amount -> confirm -> success ---------- */
 
   var API_BASE = window.MB_API_BASE || "/api";
-  var fromAccount = { id: "", currency: "USD", label: "USD Account (\u2022\u2022\u20221234)" };
+  var fromAccount = { id: "", name: "SOKHA CHAN", currency: "USD", balance: null };
   var lastReceipt = null;
 
   function apiFetch(path, options) {
@@ -214,12 +261,16 @@
       if (!acc) return;
       fromAccount = {
         id: acc.id,
+        name: acc.name || "SOKHA CHAN",
         currency: acc.currency,
-        label: acc.currency + " Account (\u2022\u2022\u2022" + String(acc.id).slice(-4) + ")"
+        balance: acc.balance
       };
-      pfFromAccount.textContent = fromAccount.label;
-      pfSumFrom.textContent = fromAccount.label;
-      pfSuccessFrom.textContent = fromAccount.label;
+      pfFromName.textContent = fromAccount.name;
+      pfConfirmFromName.textContent = fromAccount.name;
+      pfFromAccount.textContent = fromAccount.id;
+      pfFromBalance.textContent = currencyAmount(fromAccount.balance, fromAccount.currency);
+      pfSumFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
+      pfSuccessFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
     }).catch(function () {});
   }
 
@@ -233,30 +284,27 @@
 
     var currency = info.currency || "USD";
     var bank = (info.bank && info.bank.name) || "Bakong member bank";
-    var bankSub = (info.bank && info.bank.short) || "";
+    var bankShort = (info.bank && info.bank.short) || "";
 
     pfMerchant.textContent = info.merchant;
-    pfMerchantIcon.textContent = initials(info.merchant);
     pfConfirmMerchant.textContent = info.merchant;
-    pfConfirmIcon.textContent = initials(info.merchant);
-    pfBank.textContent = bank;
-    pfConfirmBank.textContent = bank;
-    pfSuccessBank.textContent = bank;
-    pfBankSub.textContent = bankSub;
-    pfBankSub.hidden = !bankSub;
-    if (pfSuccessBankSub) {
-      pfSuccessBankSub.textContent = bankSub;
-      pfSuccessBankSub.hidden = !bankSub;
-    }
+    pfSuccessMerchant.textContent = info.merchant;
+    var accountId = String(info.accountId || info.account || "");
+    pfConfirmBank.textContent = (accountId ? accountId + " - " : "") + bank;
+    pfConfirmToMark.textContent = bankMark(bankLabel(bankShort || bank));
+    pfSuccessBankMark.textContent = bankMark(bankShort || bank);
+    pfSuccessBankShort.textContent = bankShort || bank;
 
-    pfCur.textContent = symbol(currency);
+    pfCur.textContent = currency;
     pfAmount.value = info.amount ? money(info.amount, currency) : "";
-    pfNote.value = "";
+    pfNote.value = (info.merchant || "") + " transfer";
+    sizeAmountInput();
     pfNext.disabled = !(Number(String(pfAmount.value).replace(/,/g, "")) > 0);
     pfConfirmBtn.disabled = false;
-    pfConfirmBtn.textContent = "Confirm Payment";
-    pfSumFrom.textContent = fromAccount.label;
-    pfSuccessFrom.textContent = fromAccount.label;
+    pfConfirmBtn.textContent = "\u1794\u1789\u17D2\u1787\u17B6\u1780\u17CB";
+    pfRate.textContent = "1 USD = 4,083.00 KHR";
+    pfSumFrom.textContent = fromAccount.id ? fromAccount.id + " | " + fromAccount.currency : "";
+    pfSuccessFrom.textContent = pfSumFrom.textContent;
 
     showStep("amount");
     flow.classList.add("open");
@@ -292,14 +340,20 @@
     var value = readAmount();
     if (!(value > 0) || !state.current) return;
     var currency = state.current.currency || "USD";
-    var text = symbol(currency) + " " + money(value, currency);
-    pfSumAmount.textContent = text;
-    pfSumTotal.textContent = text;
+    var alt = otherCurrency(currency);
+
+    pfConfirmAmount.textContent = money(value, currency);
+    pfConfirmCur.textContent = currency;
+    pfConfirmUsd.textContent = "(" + currencyAmount(convertAmount(value, currency), alt) + ")";
+    pfSumTotal.textContent = currencyAmount(currency === "USD" ? value : convertAmount(value, currency), "USD");
+    pfSumFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
+    pfRate.textContent = "1 USD = 4,083.00 KHR";
+
     var note = pfNote.value.trim();
-    pfConfirmNote.textContent = note;
-    pfConfirmNote.hidden = !note;
+    pfConfirmNote.textContent = note || "\u2014";
+
     pfConfirmBtn.disabled = false;
-    pfConfirmBtn.textContent = "Confirm Payment";
+    pfConfirmBtn.textContent = "\u1794\u1789\u17D2\u1787\u17B6\u1780\u17CB";
     setStatus("");
     showStep("confirm");
   }
@@ -307,8 +361,8 @@
   function simulatePayment(value) {
     state.paying = true;
     pfConfirmBtn.disabled = true;
-    pfConfirmBtn.textContent = "Processing…";
-    setStatus("Static preview on GitHub Pages — no real Bakong call.");
+    pfConfirmBtn.textContent = "\u1780\u17C6\u1796\u17BB\u1784\u178A\u17C6\u178E\u17BE\u179A\u1780\u17B6\u179A\u2026";
+    setStatus("Static preview on GitHub Pages \u2014 no real Bakong call.");
     setTimeout(function () {
       state.paying = false;
       if (!state.current || !flow.classList.contains("open")) return;
@@ -316,7 +370,7 @@
         amount: value,
         currency: state.current.currency || "USD",
         merchant: state.current.merchant,
-        recipientBank: state.current.bank || { name: pfBank.textContent, short: pfBankSub.textContent || "" },
+        recipientBank: state.current.bank || { name: "Bakong member bank", short: "" },
         ref: "DEMO-" + makeRef(),
         status: "paid"
       });
@@ -342,8 +396,9 @@
       state.payment = payment;
       if (payment.recipientBank && payment.recipientBank.name) {
         pfSuccessBank.textContent = payment.recipientBank.name;
-        pfBank.textContent = payment.recipientBank.name;
         pfConfirmBank.textContent = payment.recipientBank.name;
+        pfSuccessBankShort.textContent = bankLabel(payment.recipientBank.short || payment.recipientBank.name);
+        pfSuccessBankMark.textContent = bankMark(bankLabel(payment.recipientBank.short || payment.recipientBank.name));
       }
       if (payment.deeplink) {
         pfConfirmBtn.disabled = false;
@@ -357,7 +412,7 @@
     }).catch(function (err) {
       state.paying = false;
       pfConfirmBtn.disabled = false;
-      pfConfirmBtn.textContent = "Try again";
+      pfConfirmBtn.textContent = "\u1796\u17D2\u1799\u17B6\u1799\u17B6\u1798\u1798\u17D2\u178F\u1784\u1791\u17C0\u1799\u178F";
       setStatus(err.message || "Payment service unavailable.", "error");
     });
   }
@@ -374,7 +429,7 @@
         if (payment.status === "expired") {
           state.paying = false;
           pfConfirmBtn.disabled = false;
-          pfConfirmBtn.textContent = "Try again";
+          pfConfirmBtn.textContent = "\u1796\u17D2\u1799\u17B6\u1799\u17B6\u1798\u1798\u17D2\u178F\u1784\u1791\u17C0\u1799\u178F";
           setStatus("Bakong did not receive this payment before the QR expired. Nothing was charged.", "error");
           return;
         }
@@ -389,25 +444,33 @@
     stopPolling();
     state.paying = false;
     var currency = payment.currency || (state.current && state.current.currency) || "USD";
-    pfSuccessAmount.textContent = symbol(currency) + " " + money(payment.amount, currency);
-    pfSuccessMerchant.textContent = payment.merchant;
-    pfSuccessBank.textContent = (payment.recipientBank && payment.recipientBank.name) || pfBank.textContent;
-    if (pfSuccessBankSub) {
-      var short = (payment.recipientBank && payment.recipientBank.short) ||
-        (state.current && state.current.bank && state.current.bank.short) || "";
-      pfSuccessBankSub.textContent = short;
-      pfSuccessBankSub.hidden = !short;
-    }
-    pfSuccessRef.textContent = payment.ref;
+    var bankShort = (payment.recipientBank && payment.recipientBank.short) ||
+      (state.current && state.current.bank && state.current.bank.short) || "";
+    var bankName = (payment.recipientBank && payment.recipientBank.name) ||
+      (state.current && state.current.bank && state.current.bank.name) || "Bakong member bank";
+    var accountId = (state.current && (state.current.accountId || state.current.account)) || "";
+    var note = pfNote.value.trim() || (payment.merchant || "") + " transfer";
+
+    pfSuccessAmount.textContent = currencyAmount(payment.amount, currency);
     pfSuccessTime.textContent = nowLabel();
-    pfSuccessFrom.textContent = fromAccount.label;
+    pfSuccessFromName.textContent = fromAccount.name || "SOKHA CHAN";
+    pfSuccessFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
+    pfSuccessMerchant.textContent = payment.merchant || "";
+    var brand = bankLabel(bankShort || bankName) || bankName;
+    pfSuccessBank.textContent = (accountId ? accountId + " - " : "") + brand;
+    pfSuccessBankMark.textContent = bankMark(brand);
+    pfSuccessBankShort.textContent = brand;
+    pfSuccessRef.textContent = payment.ref;
+    pfSuccessRefno.textContent = refNumber(payment.ref);
+    pfSuccessNote.textContent = note;
+
     lastReceipt = {
       amount: pfSuccessAmount.textContent,
       merchant: payment.merchant,
-      bank: pfSuccessBank.textContent,
+      bank: bankLabel(bankShort || bankName),
       ref: payment.ref,
       time: pfSuccessTime.textContent,
-      from: fromAccount.label
+      from: fromAccount.id + " | " + fromAccount.currency
     };
     if (pfDemoNote) pfDemoNote.hidden = !(envMode === "demo" || envMode === "demo-static");
     setStatus("");
@@ -471,6 +534,7 @@
         currency: data.currency || info.currency,
         city: data.city || info.city,
         bank: data.bank,
+        accountId: data.merchantAccount || info.accountId || "",
         kind: info.kind,
         raw: info.raw
       });
@@ -486,6 +550,7 @@
     var cleaned = pfAmount.value.replace(/[^0-9.]/g, "");
     if (cleaned !== pfAmount.value) pfAmount.value = cleaned;
     pfNext.disabled = !(Number(cleaned) > 0);
+    sizeAmountInput();
   });
 
   pfNext.addEventListener("click", goConfirm);
@@ -505,6 +570,55 @@
   });
 
   pfShare.addEventListener("click", shareReceipt);
+
+  var billBack = flow.querySelector("[data-bill-back]");
+  if (billBack) {
+    billBack.addEventListener("click", function () {
+      closeFlow();
+      startCamera();
+    });
+  }
+
+  var confirmBack = flow.querySelector("[data-confirm-back]");
+  if (confirmBack) {
+    confirmBack.addEventListener("click", function () {
+      setStatus("");
+      showStep("amount");
+    });
+  }
+
+  var changeAccountBtn = document.getElementById("pf-change-account");
+  if (changeAccountBtn) {
+    changeAccountBtn.addEventListener("click", function () {
+      showToast("Account switching is a demo feature");
+    });
+  }
+
+  if (pfCopyRef) {
+    pfCopyRef.addEventListener("click", function () {
+      var text = pfSuccessRefno.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          showToast("Reference copied: " + text);
+        }).catch(function () { showToast(text); });
+      } else {
+        showToast(text);
+      }
+    });
+  }
+
+  if (pfActionNew) {
+    pfActionNew.addEventListener("click", function () {
+      closeFlow();
+      startCamera();
+    });
+  }
+
+  if (pfActionShot) {
+    pfActionShot.addEventListener("click", function () {
+      showToast("Screenshot saved (demo)");
+    });
+  }
 
   Array.prototype.forEach.call(flow.querySelectorAll(".pf-back"), function (btn) {
     btn.addEventListener("click", function () {

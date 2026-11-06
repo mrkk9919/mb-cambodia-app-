@@ -19,7 +19,7 @@
     <script defer src="./assets/index-tGulQzRr.js"></script>
     <link rel="stylesheet" href="./assets/index-BIeGMN93.css">
     <link rel="stylesheet" href="./scan.css?v=3">
-    <link rel="stylesheet" href="./pay-flow.css?v=1">
+    <link rel="stylesheet" href="./pay-flow.css?v=3">
     <link rel="stylesheet" href="./account.css?v=1">
   </head>
   <body>
@@ -109,150 +109,171 @@
       <div class="system-home-indicator" aria-hidden="true"><span></span></div>
       <div class="scan-toast" id="qr-toast" role="status" aria-live="polite"></div>
 
-      <!-- KHQR payment flow: enter amount -> confirm -> success -->
+      <!-- KHQR payment flow: bill (KM) -> confirm (KM) -> success (VI) -->
       <section id="pay-flow" aria-hidden="true" aria-label="KHQR payment">
 
-        <!-- step 1: pay to merchant -->
-        <div class="pf-screen" id="pf-step-amount" data-step="amount">
-          <header class="pf-header">
-            <button class="pf-back" type="button" aria-label="Back to scanner">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
-            </button>
-            <h1>Pay to Merchant</h1>
-            <span class="pf-header-spacer" aria-hidden="true"></span>
-          </header>
+        <!-- step 1: bill / payment detail (Khmer) -->
+        <div class="pf-screen bill-screen" id="pf-step-amount" data-step="amount">
+          <button class="bill-back" type="button" aria-label="Back to scanner" data-bill-back>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
 
-          <div class="pf-body">
-            <div class="pf-merchant">
-              <span class="pf-merchant-icon" id="pf-merchant-icon" aria-hidden="true">M</span>
-              <div>
-                <p class="pf-label">Merchant Name</p>
-                <p class="pf-merchant-name" id="pf-merchant">Merchant</p>
+          <div class="bill-body">
+            <div class="bill-avatar" aria-hidden="true">
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M12 3.6L20 9.8H4z"/><path d="M6 13v8"/><path d="M10 13v8"/><path d="M14 13v8"/><path d="M18 13v8"/></svg>
+            </div>
+            <h1 class="bill-name" id="pf-merchant">Merchant</h1>
+
+            <p class="bill-caption">&#x1785;&#x17C6;&#x1793;&#x17BD;&#x1791;&#x17B9;&#x1780;&#x1794;&#x17D2;&#x179A;&#x17B6;&#x1780;&#x17CB;</p>
+            <div class="bill-amount">
+              <input class="bill-amount-input" id="pf-amount" inputmode="decimal" placeholder="0.00" aria-label="Payment amount" autocomplete="off" />
+              <span class="bill-cur" id="pf-cur">USD</span>
+            </div>
+
+            <div class="bill-hr" aria-hidden="true"></div>
+
+            <p class="bill-section">&#x1796;&#x17B8;</p>
+            <div class="bill-card">
+              <p class="bill-acc-name" id="pf-from-name">SOKHA CHAN</p>
+              <p class="bill-acc-num" id="pf-from-account"></p>
+              <div class="bill-acc-row">
+                <p class="bill-acc-bal" id="pf-from-balance"></p>
+                <button class="bill-change" type="button" id="pf-change-account">
+                  &#x1795;&#x17D2;&#x179B;&#x17B6;&#x179F;&#x17CB;&#x1794;&#x17D2;&#x178F;&#x17BC;&#x179A;&#x1782;&#x178E;&#x1793;&#x17B8;
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
               </div>
             </div>
 
-            <div class="pf-row pf-row--bank">
-              <div>
-                <p class="pf-label">Recipient Bank</p>
-                <p class="pf-bank-name" id="pf-bank">Bakong member bank</p>
-                <p class="pf-bank-sub" id="pf-bank-sub" hidden></p>
-              </div>
-              <span class="pf-bank-badge" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6" /><path d="M5 10v8h14v-8" /><path d="M9 18v-4h6v4" /></svg>
-              </span>
-            </div>
-
-            <label class="pf-field">
-              <span class="pf-label">Payment Amount</span>
-              <span class="pf-amount">
-                <span class="pf-cur" id="pf-cur">$</span>
-                <input class="pf-amount-input" id="pf-amount" inputmode="decimal" placeholder="0.00" aria-label="Payment amount" autocomplete="off" />
-              </span>
-            </label>
-
-            <label class="pf-field">
-              <span class="pf-label">Note (Optional)</span>
-              <input class="pf-input" id="pf-note" maxlength="80" placeholder="Add a note" autocomplete="off" />
-            </label>
-
-            <div class="pf-row pf-row--from">
-              <div>
-                <p class="pf-label">Pay From</p>
-                <div class="pf-account">
-                  <span class="pf-account-mark" aria-hidden="true">MB</span>
-                  <div>
-                    <p class="pf-account-name">MB Bank Cambodia</p>
-                    <p class="pf-account-sub" id="pf-from-account">USD Account (•••1234)</p>
-                  </div>
-                </div>
-              </div>
+            <div class="bill-card bill-card--note">
+              <p class="bill-note-label">&#x1796;&#x17B7;&#x1796;&#x1793;&#x17D2;&#x1793;&#x17B6;</p>
+              <input class="bill-note-input" id="pf-note" maxlength="80" placeholder="THOEURN SAROEUN transfer" autocomplete="off" />
             </div>
           </div>
 
-          <footer class="pf-footer">
-            <button class="pf-primary" id="pf-next" type="button" disabled>Next</button>
-          </footer>
+          <div class="bill-foot">
+            <button class="bill-btn" id="pf-next" type="button" disabled>&#x1794;&#x1793;&#x17D2;&#x178F;</button>
+          </div>
         </div>
 
-        <!-- step 2: confirm -->
-        <div class="pf-screen" id="pf-step-confirm" data-step="confirm" hidden>
-          <header class="pf-header">
-            <button class="pf-back" type="button" aria-label="Back to amount">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
-            </button>
-            <h1>Confirm Payment</h1>
-            <span class="pf-header-spacer" aria-hidden="true"></span>
-          </header>
+        <!-- step 2: confirm (Khmer) -->
+        <div class="pf-screen cf-screen" id="pf-step-confirm" data-step="confirm" hidden>
+          <button class="bill-back" type="button" aria-label="Back" data-confirm-back>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
 
-          <div class="pf-body">
-            <div class="pf-confirm-card">
-              <p class="pf-label">Pay To</p>
-              <div class="pf-confirm-merchant">
-                <span class="pf-merchant-icon" id="pf-confirm-icon" aria-hidden="true">M</span>
-                <p class="pf-merchant-name" id="pf-confirm-merchant">Merchant</p>
-              </div>
-              <div class="pf-confirm-bank">
-                <span class="pf-bank-badge" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6" /><path d="M5 10v8h14v-8" /><path d="M9 18v-4h6v4" /></svg>
-                </span>
+          <div class="cf-body">
+            <p class="cf-caption">&#x1785;&#x17C6;&#x1793;&#x17BD;&#x1791;&#x17B9;&#x1780;&#x1794;&#x17D2;&#x179A;&#x17B6;&#x1780;&#x17CB;</p>
+            <p class="cf-amount">
+              <span id="pf-confirm-amount">0.00</span>
+              <span class="cf-cur" id="pf-confirm-cur">USD</span>
+              <span class="cf-usd" id="pf-confirm-usd"></span>
+            </p>
+
+            <div class="cf-card">
+              <p class="cf-mini">&#x1796;&#x17B8;</p>
+              <div class="cf-party">
+                <span class="cf-mark" aria-hidden="true">MB</span>
                 <div>
-                  <p class="pf-label">Recipient Bank</p>
-                  <p class="pf-bank-name" id="pf-confirm-bank">Bakong member bank</p>
+                  <p class="cf-party-name" id="pf-confirm-from-name">SOKHA CHAN</p>
+                  <p class="cf-party-sub" id="pf-sum-from"></p>
+                </div>
+              </div>
+              <div class="cf-divider" aria-hidden="true"></div>
+              <p class="cf-mini">&#x1791;&#x17C5;</p>
+              <div class="cf-party">
+                <span class="cf-mark cf-mark--bank" id="pf-confirm-to-mark" aria-hidden="true">A</span>
+                <div>
+                  <p class="cf-party-name" id="pf-confirm-merchant">Merchant</p>
+                  <p class="cf-party-sub" id="pf-confirm-bank">Bakong member bank</p>
                 </div>
               </div>
             </div>
 
-            <div class="pf-summary">
-              <div><span>Amount</span><span id="pf-sum-amount">$ 0.00</span></div>
-              <div><span>From Account</span><span id="pf-sum-from">USD Account (•••1234)</span></div>
-              <div><span>Transaction Fee</span><span>$ 0.00</span></div>
-              <div class="pf-summary-total"><span>Total</span><span id="pf-sum-total">$ 0.00</span></div>
+            <div class="cf-card cf-details">
+              <div class="cf-row"><span>&#x17A2;&#x178F;&#x17D2;&#x179A;&#x17B6;&#x1794;&#x17D2;&#x178F;&#x17BC;&#x179A;&#x1794;&#x17D2;&#x179A;&#x17B6;&#x1780;&#x17CB;</span><span id="pf-rate">1 USD = 4,083.00 KHR</span></div>
+              <div class="cf-row"><span>&#x1780;&#x17C6;&#x179A;&#x17C3;&#x179F;&#x17C1;&#x179C;&#x17B6;</span><span>0.00 USD</span></div>
+              <div class="cf-row"><span>&#x1780;&#x17B6;&#x179A;&#x1794;&#x17C9;&#x17B6;&#x1793;&#x17CB;&#x179F;&#x17D2;&#x1798;&#x17B6;&#x1793;&#x1785;&#x17C6;&#x1793;&#x17BD;&#x1791;&#x17B9;&#x1780;&#x1794;&#x17D2;&#x179A;&#x17B6;&#x1780;&#x17CB;</span><span id="pf-sum-total"></span></div>
+              <div class="cf-row"><span>&#x1796;&#x17B7;&#x1796;&#x1793;&#x17D2;&#x1793;&#x17B6;</span><span id="pf-confirm-note"></span></div>
             </div>
 
-            <p class="pf-note-line" id="pf-confirm-note" hidden></p>
             <p class="pf-status" id="pf-status" role="status" aria-live="polite" hidden></p>
           </div>
 
-          <footer class="pf-footer">
-            <button class="pf-primary" id="pf-confirm" type="button">Confirm Payment</button>
-          </footer>
+          <div class="bill-foot">
+            <button class="bill-btn" id="pf-confirm" type="button">&#x1794;&#x1789;&#x17D2;&#x1787;&#x17B6;&#x1780;&#x17CB;</button>
+          </div>
         </div>
 
-        <!-- step 3: success -->
-        <div class="pf-screen" id="pf-step-success" data-step="success" hidden>
-          <div class="pf-success">
-            <div class="pf-check" aria-hidden="true">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+        <!-- step 3: success (Vietnamese) -->
+        <div class="pf-screen su-screen" id="pf-step-success" data-step="success" hidden>
+          <div class="su-body">
+            <div class="su-badge" aria-hidden="true">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
             </div>
-            <h2>Payment Successful</h2>
-            <p class="pf-success-amount" id="pf-success-amount">$ 0.00</p>
-            <p class="pf-success-merchant" id="pf-success-merchant">Merchant</p>
+            <h2 class="su-title">Giao D&#x1ECB;ch Th&#xE0;nh C&#xF4;ng</h2>
+            <p class="su-amount" id="pf-success-amount">0.00 USD</p>
+            <p class="su-time" id="pf-success-time"></p>
 
-            <div class="pf-received">
-              <span class="pf-bank-badge" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6" /><path d="M5 10v8h14v-8" /><path d="M9 18v-4h6v4" /></svg>
-              </span>
-              <div>
-                <p class="pf-label">Received by</p>
-                <p class="pf-bank-name" id="pf-success-bank">Bakong member bank</p>
-                <p class="pf-bank-sub" id="pf-success-bank-sub" hidden></p>
+            <div class="su-parties">
+              <div class="su-party">
+                <span class="su-mark" aria-hidden="true">MB</span>
+                <p class="su-party-name" id="pf-success-from-name">SOKHA CHAN</p>
+                <p class="su-party-sub" id="pf-success-from"></p>
+              </div>
+              <div class="su-arrows" aria-hidden="true">&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;</div>
+              <div class="su-party">
+                <span class="su-mark su-mark--bank" id="pf-success-bank-mark" aria-hidden="true">A</span>
+                <p class="su-party-name" id="pf-success-merchant">Merchant</p>
+                <p class="su-party-sub" id="pf-success-bank">Bakong member bank</p>
               </div>
             </div>
 
-            <div class="pf-summary pf-summary--success">
-              <div><span>Transaction ID</span><span id="pf-success-ref">—</span></div>
-              <div><span>Date &amp; Time</span><span id="pf-success-time">—</span></div>
-              <div><span>From Account</span><span id="pf-success-from">USD Account (•••1234)</span></div>
+            <div class="su-detail">
+              <div class="su-row"><span>M&#xE3; giao d&#x1ECB;ch</span><span id="pf-success-ref"></span></div>
+              <div class="su-row">
+                <span>M&#xE3; tham chi&#x1EBF;u</span>
+                <span class="su-ref">
+                  <b id="pf-success-refno"></b>
+                  <button class="su-copy" id="pf-copy-ref" type="button" aria-label="Copy reference">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                  </button>
+                </span>
+              </div>
+              <div class="su-row"><span>Ng&#xE2;n h&#xE0;ng ng&#x1B0;&#x1EDD;i nh&#x1EAD;n</span><span id="pf-success-bank-short"></span></div>
+              <div class="su-row"><span>N&#x1ED9;i dung</span><span id="pf-success-note"></span></div>
             </div>
-            <p class="pf-demo-note" id="pf-demo-note" hidden>Demo environment · no real funds moved</p>
+
+            <div class="su-actions">
+              <button class="su-action" id="pf-action-new" type="button">
+                <span class="su-action-ico" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13"/><path d="M12 2l5 5-5 5"/><path d="M20 17H7"/><path d="M12 22l-5-5 5-5"/></svg>
+                </span>
+                <span>Giao d&#x1ECB;ch kh&#xE1;c</span>
+              </button>
+              <button class="su-action" id="pf-action-shot" type="button">
+                <span class="su-action-ico" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
+                </span>
+                <span>Ch&#x1EE5;p m&#xE0;n h&#xEC;nh</span>
+              </button>
+              <button class="su-action" id="pf-share" type="button">
+                <span class="su-action-ico" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.7l6.8-4.2M8.6 13.3l6.8 4.2"/></svg>
+                </span>
+                <span>Chia s&#x1EBB;</span>
+              </button>
+            </div>
+
+            <p class="pf-demo-note" id="pf-demo-note" hidden>Demo environment &#xB7; no real funds moved</p>
           </div>
 
-          <footer class="pf-footer pf-footer--success">
-            <button class="pf-secondary" id="pf-share" type="button">Share Receipt</button>
-            <button class="pf-primary" id="pf-done" type="button">Done</button>
-          </footer>
+          <div class="bill-foot">
+            <button class="su-btn" id="pf-done" type="button">Ho&#xE0;n th&#xE0;nh</button>
+          </div>
         </div>
       </section>
+
     </main>
       <!-- my QR code (receive) -->
       <div class="myqr" id="myqr" aria-hidden="true">
@@ -394,7 +415,7 @@
       </div>
     <script src="./jsqr.min.js"></script>
     <script src="./qrcode.min.js"></script>
-    <script src="./scan.js?v=6"></script>
+    <script src="./scan.js?v=8"></script>
     <script src="./transfer-entry.js?v=1"></script>
     <script src="./account.js?v=1"></script>
   </body>
