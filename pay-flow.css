@@ -564,3 +564,13 @@
   font-size: 13px; color: #6f7787; letter-spacing: 0.2px;
 }
 .bill-bank:empty { display: none; }
+
+/* bank logo inside the marks (falls back to the letter when no logo is known) */
+.bill-avatar.has-logo { background: #fff; border: 1px solid #e4eaf4; overflow: hidden; }
+.bill-avatar.has-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cf-mark.has-logo, .su-mark.has-logo {
+  background: #fff; border: 1px solid #e6ebf5; overflow: hidden; padding: 0;
+}
+.cf-mark.has-logo img, .su-mark.has-logo img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}

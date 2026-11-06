@@ -32,6 +32,7 @@
   var stepSuccess = document.getElementById("pf-step-success");
   var pfMerchant = document.getElementById("pf-merchant");
   var pfBillBank = document.getElementById("pf-bill-bank");
+  var billAvatar = document.getElementById("bill-avatar");
   var pfCur = document.getElementById("pf-cur");
   var pfAmount = document.getElementById("pf-amount");
   var pfNote = document.getElementById("pf-note");
@@ -143,6 +144,37 @@
     var h = 0;
     String(ref || "").split("").forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 100000000; });
     return ("00000000" + h).slice(-8);
+  }
+
+  // brand tile assets bundled in ./assets/banks (fallback: letter mark)
+  var BANK_LOGOS = {
+    acleda: "acleda.png", aclb: "acleda.png", acledabank: "acleda.png",
+    aba: "aba.png", ababank: "aba.png",
+    wing: "wing.png", wingbank: "wing.png",
+    maybank: "maybank.png"
+  };
+
+  function bankLogoSrc(info) {
+    var accountId = String((info && info.accountId) || "");
+    var suffix = accountId.indexOf("@") > -1 ? accountId.split("@").pop().toLowerCase() : "";
+    if (!suffix && info && info.bank && info.bank.code) suffix = String(info.bank.code).toLowerCase();
+    var file = BANK_LOGOS[suffix];
+    return file ? "./assets/banks/" + file : "";
+  }
+
+  function paintMark(el, logoSrc, label) {
+    if (!el) return;
+    el.classList.remove("has-logo");
+    el.innerHTML = "";
+    if (logoSrc) {
+      var img = document.createElement("img");
+      img.src = logoSrc;
+      img.alt = label || "";
+      el.appendChild(img);
+      el.classList.add("has-logo");
+      return;
+    }
+    el.textContent = bankMark(label);
   }
 
   function bankLabel(bank) {
@@ -310,7 +342,9 @@
     var accountId = String(info.accountId || info.account || "");
     pfConfirmBank.textContent = (accountId ? accountId + " - " : "") + bank;
     if (pfBillBank) pfBillBank.textContent = bank + (accountId ? " \u00B7 " + accountId : "");
-    pfConfirmToMark.textContent = bankMark(bankLabel(bankShort || bank));
+    var markLogo = bankLogoSrc(info);
+    paintMark(pfConfirmToMark, markLogo, bank);
+    paintMark(billAvatar, markLogo, bank);
     pfSuccessBankMark.textContent = bankMark(bankShort || bank);
     pfSuccessBankShort.textContent = bankShort || bank;
 
@@ -417,7 +451,7 @@
         pfSuccessBank.textContent = payment.recipientBank.name;
         pfConfirmBank.textContent = payment.recipientBank.name;
         pfSuccessBankShort.textContent = bankLabel(payment.recipientBank.short || payment.recipientBank.name);
-        pfSuccessBankMark.textContent = bankMark(bankLabel(payment.recipientBank.short || payment.recipientBank.name));
+        paintMark(pfSuccessBankMark, bankLogoSrc(state.current), pfSuccessBankShort.textContent);
       }
       if (payment.deeplink) {
         pfConfirmBtn.disabled = false;
@@ -477,7 +511,7 @@
     pfSuccessMerchant.textContent = payment.merchant || "";
     var brand = bankLabel(bankShort || bankName) || bankName;
     pfSuccessBank.textContent = (accountId ? accountId + " - " : "") + brand;
-    pfSuccessBankMark.textContent = bankMark(brand);
+    paintMark(pfSuccessBankMark, bankLogoSrc(state.current), brand);
     pfSuccessBankShort.textContent = brand;
     pfSuccessRef.textContent = payment.ref;
     pfSuccessRefno.textContent = refNumber(payment.ref);
@@ -536,8 +570,11 @@
   function localBank(accountId) {
     var id = String(accountId || "");
     if (id.indexOf("@") === -1) return { name: "Bakong member bank", short: "" };
-    var hit = BANK_SUFFIXES[id.split("@").pop().toLowerCase()];
-    return hit ? { name: hit[0], short: hit[1] } : { name: "Bakong member bank", short: "" };
+    var key = id.split("@").pop().toLowerCase();
+    var hit = BANK_SUFFIXES[key];
+    if (!hit) return { name: "Bakong member bank", short: "", logo: "" };
+    var file = BANK_LOGOS[key];
+    return { name: hit[0], short: hit[1], logo: file ? "./assets/banks/" + file : "" };
   }
 
   function resolveInfo(info) {
