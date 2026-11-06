@@ -192,7 +192,7 @@
         city: f["60"] || "",
         amount: amount,
         currency: currency,
-        accountId: f["29"] || "",
+        accountId: String(f["29"] || "").replace(/^00[0-9A-Fa-f]{2}/, ""),
         raw: text
       };
     }
@@ -249,6 +249,18 @@
     flow.dataset.step = name;
   }
 
+  function applyFromAccount() {
+    pfFromName.textContent = fromAccount.name || "SOKHA CHAN";
+    pfConfirmFromName.textContent = fromAccount.name || "SOKHA CHAN";
+    pfFromAccount.textContent = fromAccount.id;
+    pfFromBalance.textContent = fromAccount.balance === null || fromAccount.balance === undefined
+      ? "" : currencyAmount(fromAccount.balance, fromAccount.currency);
+    pfSumFrom.textContent = fromAccount.id ? fromAccount.id + " | " + fromAccount.currency : fromAccount.currency;
+    pfSuccessFrom.textContent = pfSumFrom.textContent;
+  }
+
+  var STATIC_FALLBACK_ACCOUNT = { id: "000123456789", name: "SOKHA CHAN", currency: "USD", balance: 1284.5 };
+
   // 付款账户从内部账户表里取第一个 USD 账户
   function loadFromAccount() {
     apiFetch("/internal/accounts").then(function (data) {
@@ -265,13 +277,11 @@
         currency: acc.currency,
         balance: acc.balance
       };
-      pfFromName.textContent = fromAccount.name;
-      pfConfirmFromName.textContent = fromAccount.name;
-      pfFromAccount.textContent = fromAccount.id;
-      pfFromBalance.textContent = currencyAmount(fromAccount.balance, fromAccount.currency);
-      pfSumFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
-      pfSuccessFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
-    }).catch(function () {});
+      applyFromAccount();
+    }).catch(function () {
+      fromAccount = STATIC_FALLBACK_ACCOUNT;
+      applyFromAccount();
+    });
   }
 
   function openFlow(info) {
