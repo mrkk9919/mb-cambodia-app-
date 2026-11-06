@@ -218,16 +218,23 @@
   var fromAccount = { id: "", name: "SOKHA CHAN", currency: "USD", balance: null };
   var lastReceipt = null;
 
+  // Never parse the body of a failed response: on static hosting (GitHub Pages)
+  // a 404/405 with an empty body can leave res.json() pending forever, which used
+  // to make the scan flow look "stuck" right after the QR decoded.
   function apiFetch(path, options) {
-    return fetch(API_BASE + path, options).then(function (res) {
-      return res.json().catch(function () { return {}; }).then(function (body) {
-        if (!res.ok) {
-          var err = new Error(body.error || "HTTP " + res.status);
-          err.code = body.code;
-          throw err;
-        }
-        return body;
-      });
+    var opts = options || {};
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    if (ctrl) {
+      opts.signal = ctrl.signal;
+      setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 8000);
+    }
+    return fetch(API_BASE + path, opts).then(function (res) {
+      if (!res.ok) {
+        var err = new Error("HTTP " + res.status);
+        err.status = res.status;
+        throw err;
+      }
+      return res.json().catch(function () { return {}; });
     });
   }
 
@@ -533,6 +540,12 @@
 
   function resolveInfo(info) {
     if (!info.raw) { openFlow(info); return; }
+    if (envMode === "demo-static") {
+      // static hosting has no resolver: read the QR locally and continue as demo
+      info.bank = localBank(info.accountId || "");
+      openFlow(info);
+      return;
+    }
     apiFetch("/scan/resolve", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
