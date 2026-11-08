@@ -64,32 +64,6 @@ body.referral-open .bottom-nav { visibility: hidden; }
   right: 22px;
   border-radius: 18px;
 }
-.referral-status {
-  position: absolute;
-  z-index: 2;
-  top: max(8px, env(safe-area-inset-top));
-  right: 28px;
-  left: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 22px;
-  color: rgba(255,255,255,.97);
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.referral-status-icons { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
-.referral-status-icons svg {
-  width: 44px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.referral-status-icons span { padding: 1px 4px; border-radius: 4px; background: #1dbd65; }
 .referral-brand { position: absolute; top: 58px; left: 50%; width: 178px; height: auto; transform: translateX(-50%); }
 .referral-hero-copy { position: absolute; z-index: 2; top: 123px; left: 24px; width: 62%; }
 .referral-kicker { margin: 0 0 7px; color: rgba(255,255,255,.76); font-size: 9px; font-weight: 700; letter-spacing: 1.5px; }
