@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="theme-color" content="#0877ef" />
+    <title>International Transfer — MB Cambodia</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./international-transfer.css" />
+  </head>
+  <body>
+    <div class="it-app">
+      <header class="it-header">
+        <div class="it-status" aria-hidden="true">
+          <span>08:04</span>
+          <span class="it-status-right">
+            <svg class="it-signal" viewBox="0 0 22 18"><path d="M2 16V11h4v5M9 16V7h4v9M16 16V3h4v13" /></svg>
+            <svg class="it-wifi" viewBox="0 0 22 18"><path d="M2 6c5-5 13-5 18 0M5 9c3-3 9-3 12 0M8 12c2-2 4-2 6 0M11 15h.01" /></svg>
+            <span class="it-battery">90</span>
+          </span>
+        </div>
+        <nav class="it-nav" aria-label="International transfer navigation">
+          <a class="it-nav-button" href="./index.html" aria-label="Go back">
+            <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7" /></svg>
+          </a>
+          <h1>International Transfer</h1>
+          <a class="it-nav-button" href="./index.html" aria-label="Home">
+            <svg class="it-home-icon" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" /></svg>
+          </a>
+        </nav>
+      </header>
+
+      <main class="it-main">
+        <svg class="it-watermark" viewBox="0 0 400 400" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="42">
+            <path d="M200 28v94M200 278v94M28 200h94M278 200h94" />
+            <path d="m78 78 67 67m110 110 67 67M322 78l-67 67M145 255l-67 67" />
+          </g>
+        </svg>
+        <button class="it-remittance-option" type="button" data-remittance-demo aria-describedby="it-remittance-hint">
+          <span class="it-bank-icon" aria-hidden="true">
+            <svg viewBox="0 0 72 72">
+              <circle cx="36" cy="36" r="34" fill="#eef5ff" />
+              <g fill="none" stroke="#0877e8" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                <path d="m13 27 23-13 23 13v5H13zM17 32h38M20 33v18m10-18v18m12-18v18m10-18v18M15 53h37v5H15z" />
+              </g>
+              <circle cx="53" cy="53" r="14" fill="#e52635" />
+              <path d="m53 44 2.2 6.2h6.5l-5.3 3.8 2 6.2-5.4-3.8-5.3 3.8 2-6.2-5.3-3.8h6.5z" fill="#ffdf35" />
+            </svg>
+          </span>
+          <span class="it-option-label" id="it-remittance-hint">Remittance To Vietnam</span>
+          <svg class="it-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+        </button>
+      </main>
+
+      <p class="it-toast" id="it-toast" role="status" aria-live="polite" hidden></p>
+      <div class="it-home-indicator" aria-hidden="true"><span></span></div>
+    </div>
+    <script src="./international-transfer.js"></script>
+  </body>
+</html>

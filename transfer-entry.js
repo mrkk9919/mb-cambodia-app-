@@ -6,6 +6,16 @@
 
   document.addEventListener("click", function (event) {
     if (event.__mbTransferHandled) return;
+    var internationalButton = event.target.closest('[data-testid="button-feature-2"]');
+    if (internationalButton) {
+      event.__mbTransferHandled = true;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      window.location.href = "./international-transfer.html";
+      return;
+    }
+
     var node = event.target;
     for (var depth = 0; depth < 4 && node && node.nodeType === 1; depth++) {
       var text = (node.textContent || "").replace(/\s+/g, " ").trim();
