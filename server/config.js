@@ -30,13 +30,14 @@ const BAKONG_BASE = {
 };
 
 const env = (process.env.BAKONG_ENV || "production").toLowerCase();
+const bakongToken = process.env.BAKONG_TOKEN || "";
 
 const config = {
   port: Number(process.env.PORT || 8787),
   bakong: {
     env,
     baseUrl: BAKONG_BASE[env] || BAKONG_BASE.production,
-    token: process.env.BAKONG_TOKEN || "",
+    token: bakongToken,
     email: process.env.BAKONG_EMAIL || "",
     accountId: process.env.BAKONG_ACCOUNT_ID || "",
     merchantName: process.env.MERCHANT_NAME || "",
@@ -44,7 +45,7 @@ const config = {
     merchantId: process.env.MERCHANT_ID || "",
     acquiringBank: process.env.ACQUIRING_BANK || ""
   },
-  paymentMode: (process.env.PAYMENT_MODE || "bakong").toLowerCase(),
+  paymentMode: (process.env.PAYMENT_MODE || (bakongToken ? "bakong" : "demo")).toLowerCase(),
   paymentTimeout: Number(process.env.PAYMENT_TIMEOUT || 180),
   publicBaseUrl: process.env.PUBLIC_BASE_URL || "",
   storageDir: path.join(__dirname, "data"),

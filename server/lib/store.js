@@ -213,13 +213,15 @@ function convert(amount, from, to) {
  * 扫码支付（外部 KHQR / Bakong）成功后写入账户流水，并从付款账户扣减余额。
  * 这样账户明细（Detail Account）里就能查到这笔交易。
  */
-function recordExternalPayment({ accountId, amount, currency, merchant, note, ref, bank }) {
+function recordExternalPayment({ accountId, amount, currency, merchant, merchantId, note, ref, externalRef, bank }) {
   const st = load();
   const src = st.accounts.find((a) => a.id === accountId);
   const value = Number(amount);
   if (!src || !isFinite(value) || value <= 0) {
     return { ok: false, code: "BAD_PAYMENT", message: "付款账户或金额无效" };
   }
+  const existing = ref && st.transfers.find((t) => t.external && t.ref === ref);
+  if (existing) return { ok: true, record: existing, account: Object.assign({}, src), duplicate: true };
   const debit = round(convert(value, currency || src.currency, src.currency), src.currency);
   if (src.balance < debit) {
     return { ok: false, code: "INSUFFICIENT_FUNDS", message: "余额不足" };
@@ -230,12 +232,15 @@ function recordExternalPayment({ accountId, amount, currency, merchant, note, re
     ref: ref || newRef("QR"),
     from: src.id,
     to: String(merchant || "KHQR merchant").slice(0, 60),
+    merchantId: merchantId ? String(merchantId).slice(0, 40) : null,
     amount: debit,
     currency: src.currency,
     note: String(note || "").slice(0, 120),
+    externalRef: externalRef ? String(externalRef).slice(0, 120) : null,
     bank: (bank && bank.name) || null,
     external: true,
     status: "completed",
+    balanceAfter: src.balance,
     createdAt: Date.now()
   };
   st.transfers.unshift(record);

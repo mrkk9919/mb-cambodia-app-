@@ -70,6 +70,15 @@ async function createPayment(body) {
   if (!decoded) {
     return { status: 400, body: { error: "该二维码不是合法的 KHQR 支付码", code: "NOT_KHQR" } };
   }
+  if (config.paymentMode !== "demo" && !config.bakong.token) {
+    return {
+      status: 503,
+      body: {
+        error: "Bakong is not configured. Add BAKONG_TOKEN or use explicit demo mode.",
+        code: "BAKONG_NOT_CONFIGURED"
+      }
+    };
+  }
 
   // 静态码不带金额时，由付款方在界面输入
   const amount = decoded.amount !== null ? decoded.amount : Number(body.amount);
@@ -78,7 +87,9 @@ async function createPayment(body) {
   }
 
   const hash = bakong.md5(qr);
-  const deeplink = await bakong.makeDeeplink(qr);
+  // Demo payments are completed by the local status poller and must not wait
+  // for an unrelated live Bakong deeplink request.
+  const deeplink = config.paymentMode === "demo" ? null : await bakong.makeDeeplink(qr);
 
   const payment = store.createPayment({
     qr,
@@ -86,6 +97,7 @@ async function createPayment(body) {
     merchant: decoded.merchant,
     city: decoded.city,
     merchantAccount: decoded.bakongAccountId,
+    merchantId: decoded.merchantId,
     recipientBank: decoded.bank,
     note: String(body.note || "").slice(0, 80),
     amount,
@@ -105,20 +117,31 @@ function recordLedger(payment) {
     amount: payment.amount,
     currency: payment.currency,
     merchant: payment.merchant,
+    merchantId: payment.merchantId,
     note: payment.note,
     ref: payment.ref,
+    externalRef: payment.tx && (payment.tx.hash || payment.tx.transactionId || payment.tx.externalTxnRef),
     bank: payment.recipientBank
   });
+  if (!r.ok) {
+    store.updatePayment(payment.id, { ledgerError: r.message });
+    return;
+  }
   store.updatePayment(payment.id, {
     recorded: true,
-    ledgerRef: r.ok ? r.record.ref : null,
-    ledgerError: r.ok ? null : r.message
+    ledgerRef: r.record.ref,
+    ledgerError: null
   });
 }
 
 async function paymentStatus(id, body) {
-  const payment = store.getPayment(id);
+  let payment = store.getPayment(id);
   if (!payment) return { status: 404, body: { error: "支付单不存在" } };
+
+  if (payment.status === "paid" && !payment.recorded) {
+    recordLedger(payment);
+    payment = store.getPayment(id);
+  }
 
   if (payment.status === "pending") {
     const now = Date.now();
@@ -165,6 +188,7 @@ function publicPayment(p) {
     merchant: p.merchant,
     city: p.city,
     merchantAccount: p.merchantAccount,
+    merchantId: p.merchantId || null,
     recipientBank: p.recipientBank || { name: "Bakong member bank", short: "", code: "" },
     note: p.note || "",
     deeplink: p.deeplink || null,
@@ -236,6 +260,7 @@ async function handleApi(req, res, pathname, query) {
       currency: decoded.currency,
       bank: decoded.bank,
       merchantAccount: decoded.bakongAccountId,
+      merchantId: decoded.merchantId,
       merchantType: decoded.merchantType
     });
   }
@@ -275,11 +300,18 @@ async function handleApi(req, res, pathname, query) {
       const name = other.name || (outgoing ? t.to : t.from);
       return {
         direction: outgoing ? "out" : "in",
-        title: (outgoing ? "Send to " : "Received from ") + name,
+        title: (t.external ? "KHQR payment to " : (outgoing ? "Send to " : "Received from ")) + name,
         amount: t.amount,
         currency: t.currency,
         createdAt: t.createdAt,
-        ref: t.ref
+        ref: t.ref,
+        externalRef: t.externalRef || null,
+        note: t.note || "",
+        merchantId: t.merchantId || null,
+        bank: t.bank || null,
+        balanceAfter: t.balanceAfter === undefined ? null : t.balanceAfter,
+        accountId,
+        external: Boolean(t.external)
       };
     });
     return send(res, 200, { account, activity });

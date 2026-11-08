@@ -118,6 +118,7 @@ body.notification-open .bottom-nav { visibility: hidden; }
 .notification-card-km p { color: #555b66; line-height: 1.6; }
 
 .notification-day { margin: 0 0 -2px; color: #111820; font-size: 19px; font-weight: 500; }
+.notification-empty { margin: 36px 8px; color: #838b97; font-size: 14px; text-align: center; }
 .transaction-notice {
   padding: 16px 18px;
   border-radius: 15px;

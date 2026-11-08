@@ -78,6 +78,7 @@ const BANK_DOMAINS = {
   acledabank: { name: "ACLEDA Bank", short: "ACLEDA Plc." },
   aba: { name: "ABA Bank", short: "Advanced Bank of Asia" },
   ababank: { name: "ABA Bank", short: "Advanced Bank of Asia" },
+  abaa: { name: "ABA Bank", short: "Advanced Bank of Asia" },
   wing: { name: "Wing Bank", short: "Wing Bank (Cambodia) Plc." },
   ppcbank: { name: "PPCBank", short: "Phnom Penh Commercial Bank" },
   ppcb: { name: "PPCBank", short: "Phnom Penh Commercial Bank" },
@@ -124,6 +125,7 @@ function decodeKhqr(qr) {
 
   return {
     bakongAccountId: d.bakongAccountID,
+    merchantId: d.merchantID || null,
     merchant: d.merchantName || "KHQR merchant",
     city: d.merchantCity || "",
     amount: isFinite(amount) ? amount : null,

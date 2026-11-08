@@ -28,6 +28,7 @@
     { id: "000987654321", label: "KHR · Savings", currency: "KHR", balance: 4120000 },
     { id: "000555000111", label: "USD · Savings", currency: "USD", balance: 320.75 }
   ];
+  window.mbDemoAccounts = DEMO_ACCOUNTS;
 
   function money(value, currency) {
     var n = Number(value) || 0;
@@ -73,6 +74,7 @@
 
   function render(accounts) {
     currentAccounts = accounts;
+    window.dispatchEvent(new CustomEvent("mb:accounts-updated", { detail: accounts }));
     var khr = accounts.filter(function (a) { return a.currency === "KHR"; });
     var usd = accounts.filter(function (a) { return a.currency === "USD"; });
     var khrTotal = khr.reduce(function (s, a) { return s + (Number(a.balance) || 0); }, 0);
@@ -389,6 +391,15 @@
     ];
   }
 
+  function demoPaymentActivity(accountId) {
+    try {
+      var records = JSON.parse(localStorage.getItem("mb_local_tx") || "[]");
+      return records.filter(function (t) { return t.accountId === accountId; });
+    } catch (e) {
+      return [];
+    }
+  }
+
   function renderActivity(items, isSample) {
     acdList.innerHTML = "";
     if (!items.length) {
@@ -418,6 +429,18 @@
       time.textContent = formatTime(t.createdAt);
       main.appendChild(title);
       main.appendChild(time);
+      if (t.note) {
+        var note = document.createElement("p");
+        note.className = "acd-row-note";
+        note.textContent = t.note;
+        main.appendChild(note);
+      }
+      if (t.ref) {
+        var ref = document.createElement("p");
+        ref.className = "acd-row-ref";
+        ref.textContent = "Transaction code: " + t.ref;
+        main.appendChild(ref);
+      }
 
       var amt = document.createElement("span");
       var incoming = t.direction === "in";
@@ -454,11 +477,19 @@
       })
       .then(function (data) {
         var items = (data && data.activity) || [];
+        if (data && data.account) {
+          detailAccount = data.account;
+          renderDetailHero(data.account);
+        }
+        var localItems = demoPaymentActivity(a.id);
         if (items.length) renderActivity(items, false);
+        else if (localItems.length) renderActivity(localItems, false);
         else renderActivity(sampleActivity(a.currency), true);
       })
       .catch(function () {
-        renderActivity(sampleActivity(a.currency), true);
+        var localItems = demoPaymentActivity(a.id);
+        if (localItems.length) renderActivity(localItems, false);
+        else renderActivity(sampleActivity(a.currency), true);
       });
   }
 

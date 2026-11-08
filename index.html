@@ -19,10 +19,10 @@
     <script defer src="./assets/index-tGulQzRr.js"></script>
     <link rel="stylesheet" href="./assets/index-BIeGMN93.css">
     <link rel="stylesheet" href="./scan.css?v=3">
-    <link rel="stylesheet" href="./pay-flow.css?v=5">
-    <link rel="stylesheet" href="./account.css?v=1">
+    <link rel="stylesheet" href="./pay-flow.css?v=10">
+    <link rel="stylesheet" href="./account.css?v=2">
     <link rel="stylesheet" href="./referral.css?v=1">
-    <link rel="stylesheet" href="./notifications.css?v=1">
+    <link rel="stylesheet" href="./notifications.css?v=2">
     <link rel="stylesheet" href="./settings.css?v=1">
   </head>
   <body>
@@ -144,8 +144,8 @@
               <p class="bill-acc-num" id="pf-from-account"></p>
               <div class="bill-acc-row">
                 <p class="bill-acc-bal" id="pf-from-balance"></p>
-                <button class="bill-change" type="button" id="pf-change-account">
-                  &#x1795;&#x17D2;&#x179B;&#x17B6;&#x179F;&#x17CB;&#x1794;&#x17D2;&#x178F;&#x17BC;&#x179A;&#x1782;&#x178E;&#x1793;&#x17B8;
+                <button class="bill-change" type="button" id="pf-change-account" aria-haspopup="dialog" aria-controls="pf-account-picker" aria-expanded="false">
+                  Change
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                 </button>
               </div>
@@ -157,19 +157,40 @@
             </div>
           </div>
 
-          <div class="bill-foot">
-            <button class="bill-btn" id="pf-next" type="button" disabled>&#x1794;&#x1793;&#x17D2;&#x178F;</button>
+<div class="bill-foot">
+            <button class="bill-btn" id="pf-next" type="button" disabled>&#x1794;&#x1793;&#x17D2;&#x179F;&#x17D2;</button>
           </div>
         </div>
 
-        <!-- step 2: confirm (Khmer) -->
+        <div class="account-picker" id="pf-account-picker" aria-hidden="true">
+          <button class="account-picker-scrim" type="button" data-account-picker-close aria-label="Close account selection"></button>
+          <section class="account-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="pf-account-picker-title">
+            <span class="account-picker-handle" aria-hidden="true"></span>
+            <header class="account-picker-header">
+              <div>
+                <p>PAY FROM</p>
+                <h2 id="pf-account-picker-title">Choose an account</h2>
+              </div>
+              <button class="account-picker-close" type="button" data-account-picker-close aria-label="Close">×</button>
+            </header>
+            <div class="account-picker-list" id="pf-account-picker-list" role="listbox" aria-label="Payment accounts"></div>
+          </section>
+        </div>
+
+        <!-- step 2: transaction confirmation -->
         <div class="pf-screen cf-screen" id="pf-step-confirm" data-step="confirm" hidden>
-          <button class="bill-back" type="button" aria-label="Back" data-confirm-back>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-          </button>
+          <header class="cf-header">
+            <button class="cf-header-action" type="button" aria-label="Back" data-confirm-back>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <h1>Transaction confirmation</h1>
+            <button class="cf-header-action" id="pf-confirm-home" type="button" aria-label="Home">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+            </button>
+          </header>
 
           <div class="cf-body">
-            <p class="cf-caption">&#x1785;&#x17C6;&#x1793;&#x17BD;&#x1791;&#x17B9;&#x1780;&#x1794;&#x17D2;&#x179A;&#x17B6;&#x1780;&#x17CB;</p>
+            <p class="cf-caption">TRANSFER AMOUNT</p>
             <p class="cf-amount">
               <span id="pf-confirm-amount">0.00</span>
               <span class="cf-cur" id="pf-confirm-cur">USD</span>
@@ -177,57 +198,111 @@
             </p>
 
             <div class="cf-card">
-              <p class="cf-mini">&#x1796;&#x17B8;</p>
+              <p class="cf-mini">From</p>
               <div class="cf-party">
-                <span class="cf-mark" aria-hidden="true">MB</span>
+                <span class="cf-mark cf-mark--mb-logo has-logo" aria-hidden="true">
+                  <img src="./assets/banks/mb-confirmation.webp" alt="" />
+                </span>
                 <div>
                   <p class="cf-party-name" id="pf-confirm-from-name">SOKHA CHAN</p>
                   <p class="cf-party-sub" id="pf-sum-from"></p>
                 </div>
               </div>
               <div class="cf-divider" aria-hidden="true"></div>
-              <p class="cf-mini">&#x1791;&#x17C5;</p>
+              <p class="cf-mini">To</p>
               <div class="cf-party">
                 <span class="cf-mark cf-mark--bank" id="pf-confirm-to-mark" aria-hidden="true">A</span>
                 <div>
                   <p class="cf-party-name" id="pf-confirm-merchant">Merchant</p>
-                  <p class="cf-party-sub" id="pf-confirm-bank">Bakong member bank</p>
+                  <p class="cf-party-sub" id="pf-confirm-bank">Recipient account</p>
                 </div>
               </div>
             </div>
 
             <div class="cf-card cf-details">
-              <div class="cf-row"><span>&#x17A2;&#x178F;&#x17D2;&#x179A;&#x17B6;&#x1794;&#x17D2;&#x178F;&#x17BC;&#x179A;&#x1794;&#x17D2;&#x179A;&#x17B6;&#x1780;&#x17CB;</span><span id="pf-rate">1 USD = 4,083.00 KHR</span></div>
-              <div class="cf-row"><span>&#x1780;&#x17C6;&#x179A;&#x17C3;&#x179F;&#x17C1;&#x179C;&#x17B6;</span><span>0.00 USD</span></div>
-              <div class="cf-row"><span>&#x1780;&#x17B6;&#x179A;&#x1794;&#x17C9;&#x17B6;&#x1793;&#x17CB;&#x179F;&#x17D2;&#x1798;&#x17B6;&#x1793;&#x1785;&#x17C6;&#x1793;&#x17BD;&#x1791;&#x17B9;&#x1780;&#x1794;&#x17D2;&#x179A;&#x17B6;&#x1780;&#x17CB;</span><span id="pf-sum-total"></span></div>
-              <div class="cf-row"><span>&#x1796;&#x17B7;&#x1796;&#x1793;&#x17D2;&#x1793;&#x17B6;</span><span id="pf-confirm-note"></span></div>
+              <div class="cf-row"><span>Transaction fee</span><span>0.00 <span id="pf-fee-cur">USD</span></span></div>
+              <div class="cf-row"><span>Debit amount</span><span id="pf-sum-total"></span></div>
+              <div class="cf-row"><span>Description</span><span id="pf-confirm-note"></span></div>
             </div>
 
             <p class="pf-status" id="pf-status" role="status" aria-live="polite" hidden></p>
           </div>
 
           <div class="bill-foot">
-            <button class="bill-btn" id="pf-confirm" type="button">&#x1794;&#x1789;&#x17D2;&#x1787;&#x17B6;&#x1780;&#x17CB;</button>
+            <button class="bill-btn" id="pf-confirm" type="button">Confirm</button>
           </div>
         </div>
 
-        <!-- step 3: success (Vietnamese) -->
+        <div class="otp-overlay" id="pf-otp" aria-hidden="true">
+          <button class="otp-scrim" type="button" data-otp-close aria-label="Cancel Digital OTP"></button>
+          <section class="otp-sheet" role="dialog" aria-modal="true" aria-labelledby="pf-otp-title">
+            <span class="otp-handle" aria-hidden="true"></span>
+            <div class="otp-illustration" aria-hidden="true">
+              <svg viewBox="0 0 180 150" fill="none">
+                <path d="M87 12h53a12 12 0 0 1 12 14l-17 104a13 13 0 0 1-14 11l-47-7a12 12 0 0 1-10-14L79 22a12 12 0 0 1 8-10Z" fill="#1680F6" stroke="#0875E8" stroke-width="5"/>
+                <path d="M84 24h52l-16 96-49-7 13-89Z" fill="#DDF4FC"/>
+                <path d="m40 35 78 3a9 9 0 0 1 8 11l-13 51a10 10 0 0 1-11 8l-75-6a9 9 0 0 1-8-11l11-49a10 10 0 0 1 10-7Z" fill="#0875E8"/>
+                <circle cx="36" cy="62" r="4" fill="#fff"/><circle cx="51" cy="63" r="4" fill="#fff"/>
+                <circle cx="66" cy="64" r="4" fill="#fff"/><circle cx="81" cy="65" r="4" fill="#fff"/>
+                <circle cx="96" cy="66" r="4" fill="#fff"/><circle cx="111" cy="67" r="4" fill="#fff"/>
+                <path d="m81 111 28 4M77 122l27 4" stroke="#69C9EE" stroke-width="5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h2 id="pf-otp-title">Enter your PIN Digital OTP</h2>
+            <div class="otp-dots" id="pf-otp-dots" aria-label="0 of 6 PIN digits entered">
+              <span data-otp-dot></span><span data-otp-dot></span><span data-otp-dot></span>
+              <span data-otp-dot></span><span data-otp-dot></span><span data-otp-dot></span>
+            </div>
+            <p class="otp-error" id="pf-otp-error" role="status" aria-live="polite" hidden></p>
+            <button class="otp-forgot" id="pf-otp-forgot" type="button">Forgot PIN Digital OTP?</button>
+            <div class="otp-done-row">
+              <button id="pf-otp-done" type="button">Done</button>
+            </div>
+            <div class="otp-keypad" role="group" aria-label="Digital OTP keypad">
+              <button class="otp-key" type="button" data-otp-digit="1"><span>1</span></button>
+              <button class="otp-key" type="button" data-otp-digit="2"><span>2</span><small>ABC</small></button>
+              <button class="otp-key" type="button" data-otp-digit="3"><span>3</span><small>DEF</small></button>
+              <button class="otp-key" type="button" data-otp-digit="4"><span>4</span><small>GHI</small></button>
+              <button class="otp-key" type="button" data-otp-digit="5"><span>5</span><small>JKL</small></button>
+              <button class="otp-key" type="button" data-otp-digit="6"><span>6</span><small>MNO</small></button>
+              <button class="otp-key" type="button" data-otp-digit="7"><span>7</span><small>PQRS</small></button>
+              <button class="otp-key" type="button" data-otp-digit="8"><span>8</span><small>TUV</small></button>
+              <button class="otp-key" type="button" data-otp-digit="9"><span>9</span><small>WXYZ</small></button>
+              <span class="otp-key-spacer" aria-hidden="true"></span>
+              <button class="otp-key" type="button" data-otp-digit="0"><span>0</span></button>
+              <button class="otp-key otp-key-delete" type="button" data-otp-delete aria-label="Delete last digit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H20v14H9l-6-7 6-7Z"/><path d="m12 9 5 6m0-6-5 6"/></svg>
+              </button>
+            </div>
+            <span class="otp-home-indicator" aria-hidden="true"></span>
+          </section>
+        </div>
+
+        <!-- step 3: transaction receipt -->
         <div class="pf-screen su-screen" id="pf-step-success" data-step="success" hidden>
           <div class="su-body">
+            <div class="su-brand" aria-hidden="true">
+              <img src="./mb-cambodia-logo.png" alt="" />
+            </div>
             <div class="su-badge" aria-hidden="true">
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
             </div>
-            <h2 class="su-title">Giao D&#x1ECB;ch Th&#xE0;nh C&#xF4;ng</h2>
+            <h2 class="su-title">Transaction Completed Successfully</h2>
             <p class="su-amount" id="pf-success-amount">0.00 USD</p>
             <p class="su-time" id="pf-success-time"></p>
 
             <div class="su-parties">
               <div class="su-party">
-                <span class="su-mark" aria-hidden="true">MB</span>
+                <span class="su-mark su-mark--ref" id="pf-success-from-mark"></span>
                 <p class="su-party-name" id="pf-success-from-name">SOKHA CHAN</p>
                 <p class="su-party-sub" id="pf-success-from"></p>
               </div>
-              <div class="su-arrows" aria-hidden="true">&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;&#x203A;</div>
+              <div class="su-arrows" aria-hidden="true">
+                <svg viewBox="0 0 40 24" fill="none">
+                  <path d="M2 12h31m-8-8 8 8-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8 5h6M8 19h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".55"/>
+                </svg>
+              </div>
               <div class="su-party">
                 <span class="su-mark su-mark--bank" id="pf-success-bank-mark" aria-hidden="true">A</span>
                 <p class="su-party-name" id="pf-success-merchant">Merchant</p>
@@ -236,18 +311,18 @@
             </div>
 
             <div class="su-detail">
-              <div class="su-row"><span>M&#xE3; giao d&#x1ECB;ch</span><span id="pf-success-ref"></span></div>
+              <div class="su-row"><span>Transaction code</span><span id="pf-success-ref"></span></div>
               <div class="su-row">
-                <span>M&#xE3; tham chi&#x1EBF;u</span>
+                <span>External Txn Ref</span>
                 <span class="su-ref">
-                  <b id="pf-success-refno"></b>
+                  <b id="pf-success-tx"></b>
                   <button class="su-copy" id="pf-copy-ref" type="button" aria-label="Copy reference">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
                   </button>
                 </span>
               </div>
-              <div class="su-row"><span>Ng&#xE2;n h&#xE0;ng ng&#x1B0;&#x1EDD;i nh&#x1EAD;n</span><span id="pf-success-bank-short"></span></div>
-              <div class="su-row"><span>N&#x1ED9;i dung</span><span id="pf-success-note"></span></div>
+              <div class="su-row"><span>Receiver bank</span><span id="pf-success-bank-short"></span></div>
+              <div class="su-row"><span>Description</span><span id="pf-success-note"></span></div>
             </div>
 
             <div class="su-actions">
@@ -255,27 +330,26 @@
                 <span class="su-action-ico" aria-hidden="true">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13"/><path d="M12 2l5 5-5 5"/><path d="M20 17H7"/><path d="M12 22l-5-5 5-5"/></svg>
                 </span>
-                <span>Giao d&#x1ECB;ch kh&#xE1;c</span>
+                <span>Other Transaction</span>
               </button>
               <button class="su-action" id="pf-action-shot" type="button">
                 <span class="su-action-ico" aria-hidden="true">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
                 </span>
-                <span>Ch&#x1EE5;p m&#xE0;n h&#xEC;nh</span>
+                <span>Screenshot</span>
               </button>
               <button class="su-action" id="pf-share" type="button">
                 <span class="su-action-ico" aria-hidden="true">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.7l6.8-4.2M8.6 13.3l6.8 4.2"/></svg>
                 </span>
-                <span>Chia s&#x1EBB;</span>
+                <span>Share</span>
               </button>
             </div>
 
-            <p class="pf-demo-note" id="pf-demo-note" hidden>Demo environment &#xB7; no real funds moved</p>
           </div>
 
           <div class="bill-foot">
-            <button class="su-btn" id="pf-done" type="button">Ho&#xE0;n th&#xE0;nh</button>
+            <button class="su-btn" id="pf-done" type="button">Done</button>
           </div>
         </div>
       </section>
@@ -552,42 +626,8 @@
           </section>
 
           <section class="notification-panel" id="notice-transaction" role="tabpanel" aria-labelledby="notice-tab-transaction" hidden>
-            <h2 class="notification-day">Today</h2>
-            <article class="transaction-notice">
-              <p>Checking account: <strong>211897861</strong></p>
-              <p>Amount: <strong class="transaction-out">-0.10 USD</strong></p>
-              <p>Balance: <strong>0.89 USD</strong></p>
-              <p>Transaction time: <strong>06:29 08/11/2026</strong></p>
-              <p>Transaction code: <strong>FT26314LRHLK</strong></p>
-              <p>Description: <strong>SOKHA CHAN transfer</strong></p>
-            </article>
-            <article class="transaction-notice">
-              <p>Checking account: <strong>211897861</strong></p>
-              <p>Amount: <strong class="transaction-out">-0.10 USD</strong></p>
-              <p>Balance: <strong>0.99 USD</strong></p>
-              <p>Transaction time: <strong>06:27 08/11/2026</strong></p>
-              <p>Transaction code: <strong>FT26314H3Y0H</strong></p>
-              <p>Description: <strong>SOKHA CHAN transfer</strong></p>
-            </article>
-            <article class="transaction-notice">
-              <p>Checking account: <strong>211897861</strong></p>
-              <p>Amount: <strong class="transaction-in">+1.00 USD</strong></p>
-              <p>Balance: <strong>1.09 USD</strong></p>
-              <p>From: <strong>YUKHEANG SOEU</strong></p>
-              <p>Transaction time: <strong>04:56 08/11/2026</strong></p>
-              <p>Transaction code: <strong>FT263142Z3J</strong></p>
-              <p>Description: <strong>Transfer from Cifp</strong></p>
-            </article>
-            <h2 class="notification-day">05/11/2026</h2>
-            <article class="transaction-notice">
-              <p>Checking account: <strong>211897861</strong></p>
-              <p>Amount: <strong class="transaction-in">+0.07 USD</strong></p>
-              <p>Balance: <strong>0.19 USD</strong></p>
-              <p>From: <strong>MEKONG TRADERS</strong></p>
-              <p>Transaction time: <strong>20:52 05/11/2026</strong></p>
-              <p>Transaction code: <strong>FT263105MKT</strong></p>
-              <p>Description: <strong>Received from MEKONG TRADERS</strong></p>
-            </article>
+            <div id="notice-transaction-list" aria-live="polite"></div>
+            <p class="notification-empty" id="notice-transaction-empty" hidden>No transaction records yet.</p>
           </section>
         </div>
         <nav class="notification-nav" aria-label="Main navigation">
@@ -748,11 +788,12 @@
       </main>
     <script src="./jsqr.min.js"></script>
     <script src="./qrcode.min.js"></script>
-    <script src="./scan.js?v=12"></script>
+    <script src="./scan.js?v=18"></script>
     <script src="./transfer-entry.js?v=1"></script>
-    <script src="./account.js?v=1"></script>
+    <script src="./account.js?v=3"></script>
+    <script src="./home-balance.js?v=2"></script>
     <script src="./referral.js?v=1"></script>
-    <script src="./notifications.js?v=1"></script>
+    <script src="./notifications.js?v=2"></script>
     <script src="./settings.js?v=1"></script>
   </body>
 </html>

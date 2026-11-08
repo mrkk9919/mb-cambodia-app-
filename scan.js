@@ -25,11 +25,16 @@
   var selectedName = document.getElementById("qr-selected-name");
   var toast = document.getElementById("qr-toast");
 
-  /* --- 收付款流程（3 屏：填金额 → 确认 → 成功） --- */
+  /* --- 收付款流程：金额 -> 确认 -> Digital OTP -> 成功 --- */
   var flow = document.getElementById("pay-flow");
   var stepAmount = document.getElementById("pf-step-amount");
   var stepConfirm = document.getElementById("pf-step-confirm");
   var stepSuccess = document.getElementById("pf-step-success");
+  var otpOverlay = document.getElementById("pf-otp");
+  var otpDots = document.getElementById("pf-otp-dots");
+  var otpError = document.getElementById("pf-otp-error");
+  var otpDone = document.getElementById("pf-otp-done");
+  var otpForgot = document.getElementById("pf-otp-forgot");
   var pfMerchant = document.getElementById("pf-merchant");
   var pfBillBank = document.getElementById("pf-bill-bank");
   var billAvatar = document.getElementById("bill-avatar");
@@ -40,6 +45,9 @@
   var pfFromName = document.getElementById("pf-from-name");
   var pfFromAccount = document.getElementById("pf-from-account");
   var pfFromBalance = document.getElementById("pf-from-balance");
+  var changeAccountBtn = document.getElementById("pf-change-account");
+  var accountPicker = document.getElementById("pf-account-picker");
+  var accountPickerList = document.getElementById("pf-account-picker-list");
   var pfNext = document.getElementById("pf-next");
   var pfConfirmAmount = document.getElementById("pf-confirm-amount");
   var pfConfirmCur = document.getElementById("pf-confirm-cur");
@@ -51,6 +59,7 @@
   var pfSumFrom = document.getElementById("pf-sum-from");
   var pfRate = document.getElementById("pf-rate");
   var pfSumTotal = document.getElementById("pf-sum-total");
+  var pfFeeCur = document.getElementById("pf-fee-cur");
   var pfConfirmNote = document.getElementById("pf-confirm-note");
   var pfStatus = document.getElementById("pf-status");
   var pfConfirmBtn = document.getElementById("pf-confirm");
@@ -62,13 +71,13 @@
   var pfSuccessBank = document.getElementById("pf-success-bank");
   var pfSuccessBankMark = document.getElementById("pf-success-bank-mark");
   var pfSuccessBankShort = document.getElementById("pf-success-bank-short");
+  var pfSuccessFromMark = document.getElementById("pf-success-from-mark");
   var pfSuccessRef = document.getElementById("pf-success-ref");
-  var pfSuccessRefno = document.getElementById("pf-success-refno");
+  var pfSuccessTx = document.getElementById("pf-success-tx");
   var pfSuccessNote = document.getElementById("pf-success-note");
   var pfCopyRef = document.getElementById("pf-copy-ref");
   var pfActionNew = document.getElementById("pf-action-new");
   var pfActionShot = document.getElementById("pf-action-shot");
-  var pfDemoNote = document.getElementById("pf-demo-note");
   var pfShare = document.getElementById("pf-share");
   var pfDone = document.getElementById("pf-done");
 
@@ -86,7 +95,9 @@
     payment: null,
     pollTimer: 0,
     flow: null,
-    current: null
+    current: null,
+    otp: "",
+    otpCompleted: false
   };
 
   var canvas = document.createElement("canvas");
@@ -154,6 +165,7 @@
     try {
       var list = JSON.parse(localStorage.getItem(LOCAL_TX_KEY) || "[]");
       if (!(list instanceof Array)) list = [];
+      if (list.some(function (item) { return item.ref === record.ref; })) return;
       list.unshift(record);
       localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(list.slice(0, 100)));
     } catch (e) { /* 忽略本地存储不可用 */ }
@@ -162,16 +174,17 @@
   // brand tile assets bundled in ./assets/banks (fallback: letter mark)
   var BANK_LOGOS = {
     acleda: "acleda.png", aclb: "acleda.png", acledabank: "acleda.png",
-    aba: "aba.png", ababank: "aba.png",
+    aba: "aba-user-logo.jpg", ababank: "aba-user-logo.jpg", abaa: "aba-user-logo.jpg",
     wing: "wing.png", wingbank: "wing.png",
     maybank: "maybank.png"
   };
+  var RECEIVER_DEFAULT_LOGO = "./assets/banks/aba-user-logo.jpg";
 
   function bankLogoSrc(info) {
     var accountId = String((info && info.accountId) || "");
     var suffix = accountId.indexOf("@") > -1 ? accountId.split("@").pop().toLowerCase() : "";
     if (!suffix && info && info.bank && info.bank.code) suffix = String(info.bank.code).toLowerCase();
-    var file = BANK_LOGOS[suffix];
+    var file = BANK_LOGOS[suffix] || BANK_LOGOS[suffix.replace(/[^a-z0-9]/g, "")];
     return file ? "./assets/banks/" + file : "";
   }
 
@@ -195,6 +208,30 @@
       .replace(/\b(Bank|Plc\.?|PLC|Ltd\.?|Cambodia)\b/gi, "").trim();
     var first = name.split(/\s+/)[0] || "";
     return first;
+  }
+
+  function recipientBankInfo(info, payment) {
+    var accountId = info && (info.accountId || info.account || info.bakongAccountId);
+    var memberBank = localBank(accountId);
+    if (memberBank.name !== "Bakong member bank" && memberBank.name !== "Bakong") return memberBank;
+    var paymentBank = payment && payment.recipientBank;
+    var stateBank = info && info.bank;
+    var candidates = [paymentBank, stateBank];
+    var bank = candidates.find(function (candidate) {
+      var name = String(candidate && candidate.name || "").toLowerCase();
+      return name && name !== "bakong" && name !== "bakong member bank";
+    }) || paymentBank || stateBank || {};
+    var name = bank.name || memberBank.name || "Bakong member bank";
+    return {
+      name: name,
+      short: bankLabel(name),
+      code: bank.code || "",
+      logo: bankLogoSrc({ accountId: accountId, bank: bank })
+    };
+  }
+
+  function displayTransactionCode(ref) {
+    return String(ref || "").replace(/^(?:DEMO-|demo_)/i, "").replace(/^M(?=B)/i, "");
   }
 
   function bankMark(bank) {
@@ -223,6 +260,26 @@
     return out;
   }
 
+  function bakongAccountFromQr(raw) {
+    var fields = tlv(String(raw || "").trim());
+    var keys = Object.keys(fields).filter(function (key) {
+      var tag = Number(key);
+      return tag >= 26 && tag <= 51;
+    });
+
+    for (var i = 0; i < keys.length; i++) {
+      var template = fields[keys[i]];
+      var nested = tlv(template);
+      var candidates = [nested["00"], nested["01"], template];
+      for (var j = 0; j < candidates.length; j++) {
+        var match = String(candidates[j] || "").match(/[A-Z0-9._+-]+@[A-Z0-9.-]+/i);
+        if (match) return match[0];
+      }
+    }
+
+    return "";
+  }
+
   function parsePayload(raw) {
     var text = (raw || "").trim();
     if (!text) return null;
@@ -238,7 +295,7 @@
         city: f["60"] || "",
         amount: amount,
         currency: currency,
-        accountId: String(f["29"] || "").replace(/^00[0-9A-Fa-f]{2}/, ""),
+        accountId: bakongAccountFromQr(text),
         raw: text
       };
     }
@@ -262,17 +319,25 @@
 
   var API_BASE = window.MB_API_BASE || "/api";
   var fromAccount = { id: "", name: "SOKHA CHAN", currency: "USD", balance: null };
+  var paymentAccounts = [];
   var lastReceipt = null;
 
   // Never parse the body of a failed response: on static hosting (GitHub Pages)
   // a 404/405 with an empty body can leave res.json() pending forever, which used
   // to make the scan flow look "stuck" right after the QR decoded.
   function apiFetch(path, options) {
-    var opts = options || {};
+    var opts = Object.assign({}, options || {});
+    var timeoutMs = Number(opts.timeoutMs) || 30000;
+    delete opts.timeoutMs;
     var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timeoutId = 0;
+    var timedOut = false;
     if (ctrl) {
       opts.signal = ctrl.signal;
-      setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 8000);
+      timeoutId = setTimeout(function () {
+        timedOut = true;
+        try { ctrl.abort(); } catch (e) {}
+      }, timeoutMs);
     }
     return fetch(API_BASE + path, opts).then(function (res) {
       if (!res.ok) {
@@ -281,6 +346,17 @@
         throw err;
       }
       return res.json().catch(function () { return {}; });
+    }).then(function (data) {
+      if (timeoutId) clearTimeout(timeoutId);
+      return data;
+    }, function (err) {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (timedOut) {
+        var timeoutError = new Error("Payment service timed out. Please try again.");
+        timeoutError.code = "REQUEST_TIMEOUT";
+        throw timeoutError;
+      }
+      throw err;
     });
   }
 
@@ -302,6 +378,53 @@
     flow.dataset.step = name;
   }
 
+  function updateOtpDots() {
+    if (!otpDots) return;
+    var dots = otpDots.querySelectorAll("[data-otp-dot]");
+    Array.prototype.forEach.call(dots, function (dot, index) {
+      dot.classList.toggle("filled", index < state.otp.length);
+    });
+    otpDots.setAttribute("aria-label", state.otp.length + " of 6 PIN digits entered");
+  }
+
+  function openOtp() {
+    state.otp = "";
+    state.otpCompleted = false;
+    updateOtpDots();
+    if (otpError) { otpError.textContent = ""; otpError.hidden = true; }
+    otpOverlay.classList.add("open");
+    otpOverlay.setAttribute("aria-hidden", "false");
+  }
+
+  function closeOtp() {
+    if (!otpOverlay) return;
+    otpOverlay.classList.remove("open");
+    otpOverlay.setAttribute("aria-hidden", "true");
+    state.otp = "";
+    updateOtpDots();
+  }
+
+  function enterOtpDigit(digit) {
+    if (state.otp.length >= 6) return;
+    state.otp += digit;
+    updateOtpDots();
+    if (otpError) { otpError.textContent = ""; otpError.hidden = true; }
+  }
+
+  function submitOtp() {
+    var filledCount = otpDots ? otpDots.querySelectorAll(".filled").length : 0;
+    if (state.otp.length !== 6 || filledCount !== 6) {
+      if (otpError) {
+        otpError.textContent = "Enter all 6 digits to continue.";
+        otpError.hidden = false;
+      }
+      return;
+    }
+    state.otpCompleted = true;
+    closeOtp();
+    startPayment();
+  }
+
   function applyFromAccount() {
     pfFromName.textContent = fromAccount.name || "SOKHA CHAN";
     pfConfirmFromName.textContent = fromAccount.name || "SOKHA CHAN";
@@ -314,28 +437,130 @@
 
   var STATIC_FALLBACK_ACCOUNT = { id: "000123456789", name: "SOKHA CHAN", currency: "USD", balance: 18265.5 };
 
-  // 付款账户从内部账户表里取第一个 USD 账户
-  function loadFromAccount() {
-    apiFetch("/internal/accounts").then(function (data) {
-      var list = (data && data.accounts) || [];
-      var acc = null;
-      for (var i = 0; i < list.length; i++) {
-        if (list[i].currency === "USD") { acc = list[i]; break; }
-      }
-      if (!acc && list.length) acc = list[0];
-      if (!acc) return;
-      fromAccount = {
-        id: acc.id,
-        name: acc.name || "SOKHA CHAN",
-        currency: acc.currency,
-        balance: acc.balance
+  function normalizePaymentAccounts(list) {
+    return (list || []).filter(function (account) {
+      return account && account.id !== undefined && account.id !== null && String(account.id).trim();
+    }).map(function (account) {
+      var currency = String(account.currency || "USD").toUpperCase();
+      return {
+        id: String(account.id),
+        name: account.name || "SOKHA CHAN",
+        label: account.label || account.type || (currency + " account"),
+        currency: currency,
+        balance: account.balance === null || account.balance === undefined || account.balance === ""
+          ? null : Number(account.balance)
       };
-      applyFromAccount();
-    }).catch(function () {
-      fromAccount = STATIC_FALLBACK_ACCOUNT;
-      applyFromAccount();
     });
   }
+
+  function renderPaymentAccounts() {
+    if (!accountPickerList) return;
+    accountPickerList.textContent = "";
+    paymentAccounts.forEach(function (account) {
+      var option = document.createElement("button");
+      option.type = "button";
+      option.className = "account-option";
+      option.setAttribute("role", "option");
+      option.setAttribute("aria-selected", account.id === fromAccount.id ? "true" : "false");
+
+      var details = document.createElement("span");
+      details.className = "account-option-details";
+      var label = document.createElement("span");
+      label.className = "account-option-label";
+      label.textContent = account.label;
+      var name = document.createElement("span");
+      name.className = "account-option-name";
+      name.textContent = account.name;
+      var number = document.createElement("span");
+      number.className = "account-option-number";
+      number.textContent = account.id;
+      details.appendChild(label);
+      details.appendChild(name);
+      details.appendChild(number);
+
+      var balance = document.createElement("span");
+      balance.className = "account-option-balance";
+      balance.textContent = account.balance === null || isNaN(account.balance)
+        ? account.currency
+        : currencyAmount(account.balance, account.currency);
+      var check = document.createElement("span");
+      check.className = "account-option-check";
+      check.setAttribute("aria-hidden", "true");
+      check.textContent = "✓";
+
+      option.appendChild(details);
+      option.appendChild(balance);
+      option.appendChild(check);
+      option.addEventListener("click", function () {
+        fromAccount = account;
+        applyFromAccount();
+        refreshAmountState();
+        renderPaymentAccounts();
+        closeAccountPicker();
+      });
+      accountPickerList.appendChild(option);
+    });
+  }
+
+  function setPaymentAccounts(list, preferredId) {
+    paymentAccounts = normalizePaymentAccounts(list);
+    if (!paymentAccounts.length && window.mbDemoAccounts) {
+      paymentAccounts = normalizePaymentAccounts(window.mbDemoAccounts);
+    }
+    if (!paymentAccounts.length) paymentAccounts = [STATIC_FALLBACK_ACCOUNT];
+
+    var selected = paymentAccounts.find(function (account) {
+      return preferredId && account.id === String(preferredId);
+    }) || paymentAccounts.find(function (account) {
+      return fromAccount.id && account.id === fromAccount.id;
+    }) || paymentAccounts.find(function (account) {
+      return account.currency === "USD";
+    }) || paymentAccounts[0];
+    fromAccount = selected;
+    applyFromAccount();
+    refreshAmountState();
+    renderPaymentAccounts();
+  }
+
+  function openAccountPicker() {
+    if (!accountPicker) return;
+    renderPaymentAccounts();
+    accountPicker.classList.add("open");
+    accountPicker.setAttribute("aria-hidden", "false");
+    if (changeAccountBtn) changeAccountBtn.setAttribute("aria-expanded", "true");
+    var selected = accountPickerList && accountPickerList.querySelector('[aria-selected="true"]');
+    if (selected) selected.focus();
+  }
+
+  function closeAccountPicker() {
+    if (!accountPicker) return;
+    accountPicker.classList.remove("open");
+    accountPicker.setAttribute("aria-hidden", "true");
+    if (changeAccountBtn) changeAccountBtn.setAttribute("aria-expanded", "false");
+    if (changeAccountBtn) changeAccountBtn.focus();
+  }
+
+  function recipientAccountText(info) {
+    var account = info && (
+      info.merchantAccount || info.accountId || info.account || info.bakongAccountId || info.merchantId
+    );
+    if (account && typeof account === "object") account = account.id || account.accountId || "";
+    if (!account && info && info.raw) account = bakongAccountFromQr(info.raw);
+    return account ? "Recipient account: " + String(account) : "Recipient account unavailable";
+  }
+
+  // 默认沿用第一个 USD 账户，同时保留所有账户供用户切换。
+  function loadFromAccount() {
+    apiFetch("/internal/accounts").then(function (data) {
+      setPaymentAccounts(data && data.accounts);
+    }).catch(function () {
+      setPaymentAccounts(window.mbDemoAccounts || [STATIC_FALLBACK_ACCOUNT]);
+    });
+  }
+
+  window.addEventListener("mb:accounts-updated", function (event) {
+    if (event.detail && event.detail.length) setPaymentAccounts(event.detail);
+  });
 
   function openFlow(info) {
     state.current = info;
@@ -352,9 +577,10 @@
     pfMerchant.textContent = info.merchant;
     pfConfirmMerchant.textContent = info.merchant;
     pfSuccessMerchant.textContent = info.merchant;
-    var accountId = String(info.accountId || info.account || "");
-    pfConfirmBank.textContent = (accountId ? accountId + " - " : "") + bank;
-    if (pfBillBank) pfBillBank.textContent = bank + (accountId ? " \u00B7 " + accountId : "");
+    var accountId = String(info.accountId || info.account || info.bakongAccountId || "");
+    pfConfirmBank.textContent = recipientAccountText(info);
+    var billAccount = String(info.merchantId || accountId || "");
+    if (pfBillBank) pfBillBank.textContent = billAccount ? "Account: " + billAccount : bank;
     var markLogo = bankLogoSrc(info);
     paintMark(pfConfirmToMark, markLogo, bank);
     paintMark(billAvatar, markLogo, bank);
@@ -369,8 +595,8 @@
     sizeAmountInput();
     refreshAmountState();
     pfConfirmBtn.disabled = false;
-    pfConfirmBtn.textContent = "\u1794\u1789\u17D2\u1787\u17B6\u1780\u17CB";
-    pfRate.textContent = "1 USD = 4,083.00 KHR";
+    pfConfirmBtn.textContent = "Confirm";
+    if (pfRate) pfRate.textContent = "1 USD = 4,083.00 KHR";
     pfSumFrom.textContent = fromAccount.id ? fromAccount.id + " | " + fromAccount.currency : "";
     pfSuccessFrom.textContent = pfSumFrom.textContent;
 
@@ -385,6 +611,12 @@
 
   function closeFlow() {
     stopPolling();
+    closeOtp();
+    if (accountPicker) {
+      accountPicker.classList.remove("open");
+      accountPicker.setAttribute("aria-hidden", "true");
+    }
+    if (changeAccountBtn) changeAccountBtn.setAttribute("aria-expanded", "false");
     flow.classList.remove("open");
     flow.setAttribute("aria-hidden", "true");
     document.documentElement.style.overflow = "";
@@ -464,15 +696,16 @@
     pfConfirmAmount.textContent = money(value, currency);
     pfConfirmCur.textContent = currency;
     pfConfirmUsd.textContent = "(" + currencyAmount(convertAmount(value, currency), alt) + ")";
-    pfSumTotal.textContent = currencyAmount(currency === "USD" ? value : convertAmount(value, currency), "USD");
+    var debitAmount = currency === fromAccount.currency ? value : convertAmount(value, currency);
+    pfSumTotal.textContent = currencyAmount(debitAmount, fromAccount.currency || "USD");
     pfSumFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
-    pfRate.textContent = "1 USD = 4,083.00 KHR";
+    if (pfFeeCur) pfFeeCur.textContent = fromAccount.currency || "USD";
 
     var note = pfNote.value.trim();
     pfConfirmNote.textContent = note || "\u2014";
 
     pfConfirmBtn.disabled = false;
-    pfConfirmBtn.textContent = "\u1794\u1789\u17D2\u1787\u17B6\u1780\u17CB";
+    pfConfirmBtn.textContent = "Confirm";
     setStatus("");
     showStep("confirm");
   }
@@ -480,7 +713,7 @@
   function simulatePayment(value) {
     state.paying = true;
     pfConfirmBtn.disabled = true;
-    pfConfirmBtn.textContent = "\u1780\u17C6\u1796\u17BB\u1784\u178A\u17C6\u178E\u17BE\u179A\u1780\u17B6\u179A\u2026";
+    pfConfirmBtn.textContent = "Processing\u2026";
     setStatus("Static preview on GitHub Pages \u2014 no real Bakong call.");
     setTimeout(function () {
       state.paying = false;
@@ -497,6 +730,11 @@
   }
 
   function startPayment() {
+    if (!state.otpCompleted) {
+      openOtp();
+      return;
+    }
+    state.otpCompleted = false;
     if (state.paying || !state.current) return;
     var value = readAmount();
     if (!(value > 0)) return;
@@ -505,7 +743,9 @@
     state.paying = true;
     pfConfirmBtn.disabled = true;
     pfConfirmBtn.textContent = "Processing\u2026";
-    setStatus("Verifying the QR code with Bakong\u2026");
+    setStatus(envMode === "demo"
+      ? "Demo mode: processing a preview payment; no real Bakong transfer is sent."
+      : "Verifying the QR code with Bakong\u2026");
 
     apiFetch("/payments/create", {
       method: "POST",
@@ -520,11 +760,19 @@
       state.payment = payment;
       if (payment.recipientBank && payment.recipientBank.name) {
         pfSuccessBank.textContent = payment.recipientBank.name;
-        pfConfirmBank.textContent = payment.recipientBank.name;
+        pfConfirmBank.textContent = recipientAccountText(Object.assign({}, state.current || {}, {
+          merchantId: payment.merchantId || payment.merchantAccount ||
+            (payment.recipientAccount && (payment.recipientAccount.id || payment.recipientAccount)) ||
+            (state.current && state.current.merchantId)
+        }));
         pfSuccessBankShort.textContent = bankLabel(payment.recipientBank.short || payment.recipientBank.name);
         paintMark(pfSuccessBankMark, bankLogoSrc(state.current), pfSuccessBankShort.textContent);
       }
-      if (payment.deeplink) {
+      if (payment.demo) {
+        pfConfirmBtn.disabled = true;
+        pfConfirmBtn.textContent = "Completing demo payment\u2026";
+        setStatus("Demo mode: completing the preview payment. No real funds are moved.");
+      } else if (payment.deeplink) {
         pfConfirmBtn.disabled = false;
         pfConfirmBtn.textContent = "Open Bakong to pay";
         setStatus("Tap the button to approve it in Bakong. This screen only completes when Bakong confirms the transfer \u2014 never simulated.");
@@ -536,7 +784,7 @@
     }).catch(function (err) {
       state.paying = false;
       pfConfirmBtn.disabled = false;
-      pfConfirmBtn.textContent = "\u1796\u17D2\u1799\u17B6\u1799\u17B6\u1798\u1798\u17D2\u178F\u1784\u1791\u17C0\u1799\u178F";
+      pfConfirmBtn.textContent = "Try again";
       setStatus(err.message || "Payment service unavailable.", "error");
     });
   }
@@ -553,7 +801,7 @@
         if (payment.status === "expired") {
           state.paying = false;
           pfConfirmBtn.disabled = false;
-          pfConfirmBtn.textContent = "\u1796\u17D2\u1799\u17B6\u1799\u17B6\u1798\u1798\u17D2\u178F\u1784\u1791\u17C0\u1799\u178F";
+          pfConfirmBtn.textContent = "Try again";
           setStatus("Bakong did not receive this payment before the QR expired. Nothing was charged.", "error");
           return;
         }
@@ -564,41 +812,87 @@
     }, 2000);
   }
 
+  function saveStaticDemoPayment(payment, note) {
+    if (envMode !== "demo-static") return;
+    var debit = Number(payment.amount) || 0;
+    var currency = payment.currency || fromAccount.currency;
+    if (currency !== fromAccount.currency) {
+      debit = currency === "KHR" ? debit / 4083 : debit * 4083;
+    }
+    debit = fromAccount.currency === "KHR" ? Math.round(debit) : Math.round(debit * 100) / 100;
+    var key = LOCAL_TX_KEY;
+    var records = [];
+    try { records = JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) {}
+    if (records.some(function (item) { return item.ref === payment.ref; })) return;
+    var priorDebit = records.filter(function (item) {
+      return item.accountId === fromAccount.id && item.currency === fromAccount.currency;
+    }).reduce(function (sum, item) { return sum + (Number(item.amount) || 0); }, 0);
+    saveLocalTx({
+      direction: "out",
+      title: "Demo · KHQR payment to " + (payment.merchant || "KHQR merchant"),
+      amount: debit,
+      currency: fromAccount.currency,
+      createdAt: Date.now(),
+      ref: payment.ref,
+      externalRef: "",
+      note: note,
+      merchantId: (state.current && state.current.merchantId) || "",
+      bank: (payment.recipientBank && payment.recipientBank.name) ||
+        (state.current && state.current.bank && state.current.bank.name) || "",
+      accountId: fromAccount.id,
+      balanceAfter: Math.max(0, Number(fromAccount.balance || 0) - priorDebit - debit),
+      external: true,
+      demo: true
+    });
+  }
+
   function showSuccess(payment) {
     stopPolling();
     state.paying = false;
     var currency = payment.currency || (state.current && state.current.currency) || "USD";
-    var bankShort = (payment.recipientBank && payment.recipientBank.short) ||
-      (state.current && state.current.bank && state.current.bank.short) || "";
-    var bankName = (payment.recipientBank && payment.recipientBank.name) ||
-      (state.current && state.current.bank && state.current.bank.name) || "Bakong member bank";
+    var recipientBank = recipientBankInfo(state.current, payment);
+    var bankName = recipientBank.name;
+    var bankShort = bankLabel(bankName) || bankName;
     var accountId = (state.current && (state.current.accountId || state.current.account)) || "";
+    var merchantId = (state.current && state.current.merchantId) || payment.merchantId || "";
     var note = pfNote.value.trim() || (payment.merchant || "") + " transfer";
+    saveStaticDemoPayment(payment, note);
 
     pfSuccessAmount.textContent = currencyAmount(payment.amount, currency);
     pfSuccessTime.textContent = nowLabel();
     pfSuccessFromName.textContent = fromAccount.name || "SOKHA CHAN";
     pfSuccessFrom.textContent = fromAccount.id + " | " + fromAccount.currency;
     pfSuccessMerchant.textContent = payment.merchant || "";
-    var brand = bankLabel(bankShort || bankName) || bankName;
-    pfSuccessBank.textContent = (accountId ? accountId + " - " : "") + brand;
-    paintMark(pfSuccessBankMark, bankLogoSrc(state.current), brand);
-    pfSuccessBankShort.textContent = brand;
-    pfSuccessRef.textContent = payment.ref;
-    pfSuccessRefno.textContent = refNumber(payment.ref);
+    var recipientAccount = merchantId || accountId;
+    pfSuccessBank.textContent = recipientAccount ? "Account: " + recipientAccount : "";
+    var bankInfoForLogo = Object.assign({}, state.current || {}, { bank: recipientBank });
+    paintMark(
+      pfSuccessBankMark,
+      recipientBank.logo || bankLogoSrc(bankInfoForLogo) || RECEIVER_DEFAULT_LOGO,
+      bankShort
+    );
+    pfSuccessBankShort.textContent = "ABA BANK";
+    var displayRef = displayTransactionCode(payment.ref);
+    pfSuccessRef.textContent = displayRef;
+    var externalRef = payment.tx && (
+      payment.tx.hash || payment.tx.transactionId || payment.tx.externalTxnRef || payment.tx.externalRef
+    );
+    var displayExternalRef = displayTransactionCode(externalRef || refNumber(payment.ref));
+    pfSuccessTx.textContent = displayExternalRef;
+    if (pfSuccessFromMark) pfSuccessFromMark.textContent = displayExternalRef;
     pfSuccessNote.textContent = note;
 
     lastReceipt = {
       amount: pfSuccessAmount.textContent,
       merchant: payment.merchant,
-      bank: bankLabel(bankShort || bankName),
-      ref: payment.ref,
+      bank: bankName,
+      ref: displayRef,
       time: pfSuccessTime.textContent,
       from: fromAccount.id + " | " + fromAccount.currency
     };
-    if (pfDemoNote) pfDemoNote.hidden = !(envMode === "demo" || envMode === "demo-static");
     setStatus("");
     showStep("success");
+    document.dispatchEvent(new Event("mb:payment-recorded"));
   }
 
   function shareReceipt() {
@@ -626,6 +920,7 @@
   var BANK_SUFFIXES = {
     acleda: ["ACLEDA Bank", "ACLEDA Plc."], aclb: ["ACLEDA Bank", "ACLEDA Plc."],
     aba: ["ABA Bank", "Advanced Bank of Asia"], ababank: ["ABA Bank", "Advanced Bank of Asia"],
+    abaa: ["ABA Bank", "Advanced Bank of Asia"],
     wing: ["Wing Bank", "Wing Bank (Cambodia) Plc."],
     ppcbank: ["PPCBank", "Phnom Penh Commercial Bank"], ppcb: ["PPCBank", "Phnom Penh Commercial Bank"],
     canadabank: ["Canadia Bank", "Canadia Bank Plc."], maybank: ["Maybank Cambodia", "Maybank (Cambodia) Plc."],
@@ -667,6 +962,7 @@
         currency: data.currency || info.currency,
         city: data.city || info.city,
         bank: data.bank,
+        merchantId: data.merchantId || "",
         accountId: data.merchantAccount || info.accountId || "",
         kind: info.kind,
         raw: info.raw
@@ -711,8 +1007,29 @@
       if (state.payment.deeplink) openBakong();
       return;
     }
-    startPayment();
+    openOtp();
   });
+
+  if (otpOverlay) {
+    otpOverlay.addEventListener("click", function (event) {
+      if (event.target.closest("[data-otp-close]")) closeOtp();
+      var digit = event.target.closest("[data-otp-digit]");
+      if (digit) enterOtpDigit(digit.getAttribute("data-otp-digit"));
+      if (event.target.closest("[data-otp-delete]")) {
+        state.otp = state.otp.slice(0, -1);
+        updateOtpDots();
+        if (otpError) { otpError.textContent = ""; otpError.hidden = true; }
+      }
+    });
+  }
+  if (otpDone) otpDone.addEventListener("click", submitOtp);
+  if (otpForgot) {
+    otpForgot.addEventListener("click", function () {
+      if (!otpError) return;
+      otpError.textContent = "Contact MB Bank to reset your Digital OTP.";
+      otpError.hidden = false;
+    });
+  }
 
   pfDone.addEventListener("click", function () {
     closeFlow();
@@ -737,16 +1054,29 @@
     });
   }
 
-  var changeAccountBtn = document.getElementById("pf-change-account");
+  var confirmHome = document.getElementById("pf-confirm-home");
+  if (confirmHome) {
+    confirmHome.addEventListener("click", function () {
+      closeFlow();
+      closeScanner();
+    });
+  }
+
   if (changeAccountBtn) {
     changeAccountBtn.addEventListener("click", function () {
-      showToast("Account switching is a demo feature");
+      if (!paymentAccounts.length) loadFromAccount();
+      openAccountPicker();
+    });
+  }
+  if (accountPicker) {
+    accountPicker.addEventListener("click", function (event) {
+      if (event.target.closest("[data-account-picker-close]")) closeAccountPicker();
     });
   }
 
   if (pfCopyRef) {
     pfCopyRef.addEventListener("click", function () {
-      var text = pfSuccessRefno.textContent;
+      var text = pfSuccessTx.textContent;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function () {
           showToast("Reference copied: " + text);
@@ -983,7 +1313,22 @@
   });
 
   document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && accountPicker && accountPicker.classList.contains("open")) {
+      closeAccountPicker();
+      return;
+    }
+    if (otpOverlay && otpOverlay.classList.contains("open")) {
+      if (/^[0-9]$/.test(e.key)) { enterOtpDigit(e.key); return; }
+      if (e.key === "Backspace") {
+        state.otp = state.otp.slice(0, -1);
+        updateOtpDots();
+        if (otpError) { otpError.textContent = ""; otpError.hidden = true; }
+        return;
+      }
+      if (e.key === "Enter") { submitOtp(); return; }
+    }
     if (e.key !== "Escape") return;
+    if (otpOverlay && otpOverlay.classList.contains("open")) { closeOtp(); return; }
     if (flow.classList.contains("open")) { closeFlow(); return; }
     if (overlay.classList.contains("open")) closeScanner();
   });
