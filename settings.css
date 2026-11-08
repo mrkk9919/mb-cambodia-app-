@@ -42,31 +42,6 @@ body.settings-open .bottom-nav { visibility: hidden; }
     radial-gradient(ellipse at 80% 74%, rgba(199,233,255,.72), transparent 46%),
     linear-gradient(118deg,#fbf9ff 0%,#f7faff 54%,#e6f4ff 100%);
 }
-.settings-status {
-  position: absolute;
-  top: max(8px, env(safe-area-inset-top));
-  right: 29px;
-  left: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 21px;
-  color: #16191e;
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.settings-status-icons { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
-.settings-status-icons svg {
-  width: 44px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.settings-status-icons span { padding: 1px 4px; border-radius: 4px; color: #fff; background: #1dbd65; }
 .settings-hero > h1 {
   margin: 0 0 26px;
   color: #111318;
