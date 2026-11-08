@@ -1,0 +1,87 @@
+.si-main { padding-top: 20px; }
+
+.si-list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(14px, 3vw, 24px);
+}
+
+.si-option {
+  position: relative;
+  display: grid;
+  min-height: 78px;
+  grid-template-columns: clamp(38px, 10vw, 64px) minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: clamp(12px, 3vw, 22px);
+  padding: 12px clamp(16px, 4vw, 28px);
+  border: 1px solid #edf0f5;
+  border-radius: 17px;
+  color: #252a32;
+  background: #fff;
+  box-shadow: 0 7px 17px rgba(32,53,84,.065);
+  text-align: left;
+  cursor: pointer;
+  animation: si-option-in 260ms ease-out both;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.si-option:nth-child(2) { animation-delay: 45ms; }
+.si-option:nth-child(3) { animation-delay: 90ms; }
+.si-option:nth-child(4) { animation-delay: 135ms; }
+.si-option:hover { box-shadow: 0 10px 22px rgba(32,53,84,.1); }
+.si-option:active { transform: scale(.99); }
+.si-option:focus-visible { outline: 3px solid #f6c746; outline-offset: 3px; }
+.si-option.is-selected { border-left: 5px solid #0877ef; padding-left: calc(clamp(16px, 4vw, 28px) - 4px); }
+
+.si-icon {
+  display: grid;
+  width: clamp(36px, 9vw, 60px);
+  aspect-ratio: 1;
+  place-items: center;
+  color: #0877ef;
+}
+
+.si-icon svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.si-icon .si-icon-frame { stroke: #2d8bf4; stroke-dasharray: 2 2.8; stroke-width: 1.1; }
+.si-option:nth-child(2) .si-icon .si-icon-frame, .si-option:nth-child(3) .si-icon .si-icon-frame { stroke: #c3c9d1; }
+.si-copy { display: grid; min-width: 0; gap: 2px; }
+.si-copy strong { color: #0874e7; font-size: clamp(16px, 4.4vw, 21px); font-weight: 600; line-height: 1.22; }
+.si-copy > span { color: #858c97; font-size: clamp(12px, 3.55vw, 15px); font-weight: 400; line-height: 1.34; }
+.si-copy em { color: #0874e7; font-style: normal; text-decoration: underline; text-underline-offset: 2px; }
+.si-chevron { width: 19px; height: 19px; fill: none; stroke: #0877ef; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.1; }
+.si-hot { position: absolute; top: -11px; right: clamp(14px, 4vw, 28px); z-index: 1; padding: 5px 11px; border-radius: 12px; color: #fff; background: #ee354b; font-size: 13px; font-weight: 600; line-height: 1.2; }
+.si-option-query { min-height: clamp(58px, 14vw, 94px); }
+.si-option-query .si-copy { display: block; }
+.si-option-query .si-copy strong { font-size: clamp(17px, 4.5vw, 22px); }
+
+.si-toast {
+  position: absolute;
+  z-index: 2;
+  right: 22px;
+  bottom: calc(28px + env(safe-area-inset-bottom));
+  left: 22px;
+  width: fit-content;
+  max-width: calc(100% - 44px);
+  margin: 0 auto;
+  padding: 11px 16px;
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(28,39,54,.92);
+  font-size: 13px;
+  text-align: center;
+  box-shadow: 0 5px 16px rgba(0,0,0,.12);
+}
+
+@keyframes si-option-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (min-width: 700px) {
+  .si-main { padding-top: 24px; }
+  .si-list { gap: 24px; }
+  .si-option { min-height: 104px; grid-template-columns: 64px minmax(0, 1fr) 24px; gap: 20px; padding: 16px 24px; }
+  .si-option.is-selected { padding-left: 20px; }
+  .si-icon { width: 60px; }
+  .si-copy strong { font-size: 21px; }
+  .si-copy > span { font-size: 15px; }
+  .si-option-query { min-height: 92px; }
+}

@@ -16,6 +16,26 @@
       return;
     }
 
+    var savingsButton = event.target.closest('[data-testid="button-feature-3"]');
+    if (savingsButton) {
+      event.__mbTransferHandled = true;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      window.location.href = "./savings-investment.html";
+      return;
+    }
+
+    var atmButton = event.target.closest('[data-testid="button-feature-6"]');
+    if (atmButton) {
+      event.__mbTransferHandled = true;
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      window.location.href = "./cash-to-atm.html";
+      return;
+    }
+
     var node = event.target;
     for (var depth = 0; depth < 4 && node && node.nodeType === 1; depth++) {
       var text = (node.textContent || "").replace(/\s+/g, " ").trim();

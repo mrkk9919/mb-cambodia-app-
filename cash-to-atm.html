@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="theme-color" content="#0877ef" />
+    <title>Cash to ATM — MB Cambodia</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./international-transfer.css" />
+    <link rel="stylesheet" href="./cash-to-atm.css" />
+  </head>
+  <body>
+    <div class="it-app">
+      <header class="it-header">
+        <div class="it-status" aria-hidden="true">
+          <span>08:05</span>
+          <span class="it-status-right">
+            <svg class="it-signal" viewBox="0 0 22 18"><path d="M2 16V11h4v5M9 16V7h4v9M16 16V3h4v13" /></svg>
+            <svg class="it-wifi" viewBox="0 0 22 18"><path d="M2 6c5-5 13-5 18 0M5 9c3-3 9-3 12 0M8 12c2-2 4-2 6 0M11 15h.01" /></svg>
+            <span class="it-battery">90</span>
+          </span>
+        </div>
+        <nav class="it-nav" aria-label="ATM navigation">
+          <a class="it-nav-button" href="./index.html" aria-label="Go back">
+            <svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7" /></svg>
+          </a>
+          <h1>Cash to ATM</h1>
+          <a class="it-nav-button" href="./index.html" aria-label="Home">
+            <svg class="it-home-icon" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" /></svg>
+          </a>
+        </nav>
+      </header>
+
+      <main class="it-main atm-main">
+        <svg class="it-watermark atm-watermark" viewBox="0 0 400 400" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="42">
+            <path d="M200 28v94M200 278v94M28 200h94M278 200h94" />
+            <path d="m78 78 67 67m110 110 67 67M322 78l-67 67M145 255l-67 67" />
+          </g>
+        </svg>
+
+        <button class="atm-service-button" type="button" data-atm-action="withdrawal">
+          <span class="atm-service-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <circle cx="31" cy="32" r="29" fill="#eef5ff" />
+              <path d="M17 19h30v35H17z" fill="#0877ef" stroke="#0877ef" stroke-linejoin="round" stroke-width="2" />
+              <path d="M14 16h36v6H14z" fill="#acd8ff" stroke="#acd8ff" stroke-linejoin="round" stroke-width="2" />
+              <path d="M23 25h18v5H23z" fill="#1649cc" stroke="#1649cc" />
+              <path d="M31 29v15m4-12c-1-2-6-2-7 0-1 2 1 3 4 4 3 1 4 2 3 4-1 2-6 2-8 0" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" />
+              <circle cx="47" cy="46" r="10" fill="#1e43cb" stroke="#fff" stroke-width="1.5" />
+              <text x="47" y="48.5" fill="#fff" font-family="Arial, sans-serif" font-size="5" font-weight="700" text-anchor="middle">MB</text>
+            </svg>
+          </span>
+          <span class="atm-service-copy">
+            <strong>MBCambodia ATM/CRM</strong>
+            <span>Generating code for Cash Withdrawals at Any MBCambodia ATM/CRM.</span>
+          </span>
+          <svg class="atm-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+        </button>
+
+        <section class="atm-history-card" aria-labelledby="atm-history-title">
+          <div class="atm-history-heading">
+            <span class="atm-history-icon" aria-hidden="true">
+              <svg viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="30" fill="#eef5ff" />
+                <rect x="16" y="10" width="32" height="43" rx="4" fill="#0877ef" stroke="#0877ef" stroke-width="2" />
+                <path d="M23 19h18M23 25h18M23 32h9" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" />
+                <circle cx="43" cy="43" r="12" fill="#aed7ff" stroke="#eef5ff" stroke-width="2" />
+                <path d="M43 36v7l5 3" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.5" />
+              </svg>
+            </span>
+            <h2 id="atm-history-title">Withdrawal History</h2>
+          </div>
+
+          <div class="atm-divider" aria-hidden="true"></div>
+
+          <span class="atm-account-label" id="atm-account-label">Select account</span>
+          <div class="atm-account-select-wrap">
+            <button class="atm-account-trigger" type="button" id="atm-account-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="atm-account-menu" aria-labelledby="atm-account-label">
+              <span class="atm-account-values">
+                <span class="atm-account-owner">THOEURN SAROEUN</span>
+                <span class="atm-account-number">162454845 | KHR</span>
+              </span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div class="atm-account-menu" id="atm-account-menu" role="listbox" aria-label="Accounts" hidden>
+              <button type="button" role="option" aria-selected="true" data-account="162454845" data-currency="KHR">THOEURN SAROEUN <span>162454845 | KHR</span></button>
+              <button type="button" role="option" aria-selected="false" data-account="2118997861" data-currency="USD">THOEURN SAROEUN <span>2118997861 | USD</span></button>
+            </div>
+          </div>
+
+          <div class="atm-empty-state">
+            <svg class="atm-empty-icon" viewBox="0 0 96 96" aria-hidden="true">
+              <rect x="19" y="10" width="48" height="64" rx="5" />
+              <path d="M29 23h28M29 33h19" />
+              <circle cx="61" cy="65" r="20" />
+              <path d="M61 54v12l8 5" />
+            </svg>
+            <p id="atm-history-message">The Withdrawal history only shows codes from the past 7 days.</p>
+          </div>
+        </section>
+      </main>
+
+      <p class="atm-toast" id="atm-toast" role="status" aria-live="polite" hidden></p>
+      <div class="it-home-indicator" aria-hidden="true"><span></span></div>
+    </div>
+    <script src="./cash-to-atm.js"></script>
+  </body>
+</html>
