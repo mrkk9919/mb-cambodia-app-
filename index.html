@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="./assets/index-BIeGMN93.css">
     <link rel="stylesheet" href="./scan.css?v=5">
     <link rel="stylesheet" href="./pay-flow.css?v=10">
-    <link rel="stylesheet" href="./account.css?v=4">
+    <link rel="stylesheet" href="./account.css?v=5">
     <link rel="stylesheet" href="./referral.css?v=1">
     <link rel="stylesheet" href="./notifications.css?v=2">
     <link rel="stylesheet" href="./settings.css?v=1">
@@ -465,7 +465,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           <h1 class="txd-title">Transaction details</h1>
-          <span class="txd-header-space" aria-hidden="true"></span>
+          <button class="txd-icon-btn" id="txd-home" type="button" aria-label="Back to home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+          </button>
         </header>
         <main class="txd-content">
           <section class="txd-summary">
@@ -523,6 +525,10 @@
               <strong id="txd-description">-</strong>
             </div>
           </section>
+          <button class="txd-share" id="txd-share" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></svg>
+            Share
+          </button>
           <p class="txd-toast" id="txd-toast" role="status" aria-live="polite"></p>
         </main>
       </div>
@@ -904,9 +910,9 @@
       </main>
     <script src="./jsqr.min.js"></script>
     <script src="./qrcode.min.js"></script>
-    <script src="./scan.js?v=22"></script>
+    <script src="./scan.js?v=23"></script>
     <script src="./transfer-entry.js?v=1"></script>
-    <script src="./account.js?v=5"></script>
+    <script src="./account.js?v=6"></script>
     <script src="./home-balance.js?v=2"></script>
     <script src="./referral.js?v=1"></script>
     <script src="./notifications.js?v=2"></script>

@@ -1376,7 +1376,31 @@
   var myqrAmountCancel = document.getElementById("myqr-amount-cancel");
   var myqrAmountConfirm = document.getElementById("myqr-amount-confirm");
 
-  var MYQR_HOLDER = "SOKHA CHAN";
+  // Bakong / KHQR 收款方配置。在 index.html 里设置 window.MB_KHQR_CONFIG
+  // 即可换成自己的 Bakong 账户（形如 012345678@aclb），无需改这个文件。
+  var KHQR_DEFAULTS = {
+    accountId: "angkor.travel@acleda",
+    merchantName: "Angkor Travel KH",
+    city: "Phnom Penh",
+    storeLabel: "Angkor Travel KH",
+    terminalLabel: "MB Cambodia App",
+    merchantCategoryCode: "5999"
+  };
+  var khqrConfig = (function () {
+    var cfg = {};
+    var key;
+    for (key in KHQR_DEFAULTS) {
+      if (Object.prototype.hasOwnProperty.call(KHQR_DEFAULTS, key)) cfg[key] = KHQR_DEFAULTS[key];
+    }
+    var override = window.MB_KHQR_CONFIG || {};
+    for (key in override) {
+      if (Object.prototype.hasOwnProperty.call(override, key) && override[key]) cfg[key] = String(override[key]);
+    }
+    return cfg;
+  })();
+
+  var MYQR_HOLDER = khqrConfig.merchantName;
+
   var myqrFromScanner = false;
   var myqrState = { accounts: [], accountId: null, currency: "KHR", amount: 0, req: 0 };
 
@@ -1491,7 +1515,57 @@
     qr.addData(text);
     qr.make();
     myqrImg.src = qr.createDataURL(8, 4);
+    myqrImg.setAttribute("data-payload", text);
     return true;
+  }
+
+  /* --- KHQR（Bakong）报文：EMVCo TLV + CRC16-CCITT --- */
+
+  function khqrTlv(tag, value) {
+    var text = String(value === undefined || value === null ? "" : value);
+    return tag + (text.length < 10 ? "0" : "") + text.length + text;
+  }
+
+  function khqrCrc16(text) {
+    var crc = 0xFFFF;
+    for (var i = 0; i < text.length; i++) {
+      crc ^= text.charCodeAt(i) << 8;
+      for (var j = 0; j < 8; j++) {
+        crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+      }
+    }
+    var hex = crc.toString(16).toUpperCase();
+    return ("0000" + hex).slice(-4);
+  }
+
+  function khqrAmountText(amount) {
+    var text = String(amount);
+    return /^\d+$/.test(text) ? text : Number(amount).toFixed(2);
+  }
+
+  // 与 bakong-khqr 的 generateIndividual 输出一致，Bakong App 可直接识别
+  function buildKhqr(currency, amount) {
+    var cfg = khqrConfig;
+    var dynamicQr = Number(amount) > 0;
+    var payload = khqrTlv("00", "01");
+    payload += khqrTlv("01", dynamicQr ? "12" : "11");
+    payload += khqrTlv("29", khqrTlv("00", cfg.accountId));
+    payload += khqrTlv("52", cfg.merchantCategoryCode);
+    payload += khqrTlv("53", String(currency).toUpperCase() === "KHR" ? "116" : "840");
+    if (dynamicQr) payload += khqrTlv("54", khqrAmountText(amount));
+    payload += khqrTlv("58", "KH");
+    payload += khqrTlv("59", cfg.merchantName);
+    payload += khqrTlv("60", cfg.city);
+    var extra = "";
+    if (cfg.storeLabel) extra += khqrTlv("03", cfg.storeLabel);
+    if (cfg.terminalLabel) extra += khqrTlv("07", cfg.terminalLabel);
+    if (extra) payload += khqrTlv("62", extra);
+    if (dynamicQr) {
+      var created = Date.now();
+      var expires = created + 5 * 60 * 1000;
+      payload += khqrTlv("99", khqrTlv("00", created) + khqrTlv("01", expires));
+    }
+    return payload + "6304" + khqrCrc16(payload + "6304");
   }
 
   function myqrAmountLabel() {
@@ -1522,15 +1596,14 @@
     }
 
     function preview() {
-      var payload = "MB CAMBODIA DEMO|" + myqrState.currency + "|" +
-        (myqrState.amount ? myqrState.amount : "0") + "|" + acct.id;
+      var payload = buildKhqr(myqrState.currency, myqrState.amount);
       if (!drawQr(payload)) {
         myqrSetStatus("QR renderer failed to load.");
         if (myqrLoading) myqrLoading.hidden = true;
         return;
       }
       finished();
-      myqrSetStatus("Demo QR — shown for preview, not a live KHQR", "note");
+      myqrSetStatus("KHQR ready · scan with any Bakong app", "note");
     }
 
     if (envMode === "demo-static") {

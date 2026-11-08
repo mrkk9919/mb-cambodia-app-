@@ -418,9 +418,8 @@
     var bank = t.bank || "";
     var sample = Boolean(isSample || t.demo);
     var rawStatus = String(t.status || "").toLowerCase();
-    var status = sample ? "Sample record" :
-      (rawStatus === "pending" ? "Pending" :
-        (rawStatus === "failed" || rawStatus === "expired" ? "Failed" : "Success"));
+    var status = rawStatus === "pending" ? "Pending" :
+      (rawStatus === "failed" || rawStatus === "expired" ? "Failed" : "Success");
 
     txdNodes.amount.textContent = (incoming ? "+" : "-") + amount;
     txdNodes.amount.classList.toggle("in", incoming);
@@ -435,8 +434,7 @@
       ? transactionAccountText(detailAccount && detailAccount.id, "", currency)
       : transactionAccountText(counterpartyAccount, bank, currency);
     txdNodes.status.textContent = status;
-    txdNodes.status.dataset.state = sample ? "sample" :
-      (status === "Success" ? "success" : (status === "Pending" ? "pending" : "failed"));
+    txdNodes.status.dataset.state = status === "Success" ? "success" : (status === "Pending" ? "pending" : "failed");
     txdNodes.transferAmount.textContent = amount;
     txdNodes.time.textContent = formatTime(t.createdAt);
     txdNodes.ref.textContent = t.ref || "Not available";
@@ -459,6 +457,56 @@
 
   var txdBack = document.getElementById("txd-back");
   if (txdBack) txdBack.addEventListener("click", closeTransactionDetail);
+
+  var txdHome = document.getElementById("txd-home");
+  if (txdHome) {
+    txdHome.addEventListener("click", function () {
+      closeTransactionDetail();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  var txdShare = document.getElementById("txd-share");
+  if (txdShare) {
+    txdShare.addEventListener("click", function () {
+      var t = currentTransaction;
+      if (!t) return;
+      var currency = t.currency || (detailAccount && detailAccount.currency) || "USD";
+      var signed = (t.direction === "in" ? "+" : "-") + money(t.amount, currency) + " " + currency;
+      var party = transactionParty(t);
+      var owner = (detailAccount && detailAccount.name) || HOLDER;
+      var incoming = t.direction === "in";
+      var rawStatus = String(t.status || "").toLowerCase();
+      var status = rawStatus === "pending" ? "Pending" :
+        (rawStatus === "failed" || rawStatus === "expired" ? "Failed" : "Success");
+      var text = [
+        "MB Cambodia - Transaction receipt",
+        "Amount: " + signed,
+        "From: " + (incoming ? party : owner),
+        "To: " + (incoming ? owner : party),
+        "Status: " + status,
+        "Time: " + formatTime(t.createdAt),
+        "Transaction code: " + (t.ref || "Not available"),
+        "Description: " + (t.note || stripDemo(t.title || "") || "No description")
+      ].join("\n");
+      function shared() { txdNodes.toast.textContent = "Receipt shared"; }
+      function fallbackCopied() { txdNodes.toast.textContent = "Receipt copied to clipboard"; }
+      function fallback() {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(fallbackCopied).catch(function () {
+            txdNodes.toast.textContent = "Unable to share receipt";
+          });
+        } else {
+          txdNodes.toast.textContent = "Share is not available in this browser";
+        }
+      }
+      if (navigator.share) {
+        navigator.share({ title: "MB Cambodia transaction", text: text }).then(shared).catch(fallback);
+      } else {
+        fallback();
+      }
+    });
+  }
   if (txdNodes.copyRef) {
     txdNodes.copyRef.addEventListener("click", function () {
       var ref = referenceCode(currentTransaction && currentTransaction.externalRef);
@@ -494,14 +542,14 @@
         Number(hm[0]), Number(hm[1]), Number(hm[2])).getTime();
     }
     return [
-      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.07 * m, currency: currency, createdAt: stamp("05/11/2026 20:52:00") },
-      { direction: "in", title: "Received from SOKHA CHAN", amount: 0.01 * m, currency: currency, createdAt: stamp("05/11/2026 20:51:00") },
-      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.01 * m, currency: currency, createdAt: stamp("31/10/2026 21:05:00") },
-      { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 3.93 * m, currency: currency, createdAt: stamp("30/10/2026 22:34:00") },
-      { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 50 * m, currency: currency, createdAt: stamp("30/10/2026 20:56:00") },
-      { direction: "out", title: "Send to KHOEURN BUNTHOEURN", amount: 1.99 * m, currency: currency, createdAt: stamp("30/10/2026 20:24:00") },
-      { direction: "out", title: "TOP UP PHONE NUMBER - 0979935566", amount: 1 * m, currency: currency, createdAt: stamp("30/10/2026 19:57:00") },
-      { direction: "out", title: "Send to TIMES MEDIA", amount: 5 * m, currency: currency, createdAt: stamp("30/10/2026 19:19:00") }
+      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.07 * m, currency: currency, createdAt: stamp("05/11/2026 20:52:00"), ref: "FT263140N5GL", externalRef: "052d185c", status: "success", counterpartyAccount: "2118997861", bank: "Maybank Cambodia PLC", note: "MEKONG TRADERS transfer" },
+      { direction: "in", title: "Received from SOKHA CHAN", amount: 0.01 * m, currency: currency, createdAt: stamp("05/11/2026 20:51:00"), ref: "FT263140N4KM", externalRef: "6b31f0a2", status: "success", counterpartyAccount: "000987654321", bank: "MB Bank Cambodia", note: "SOKHA CHAN transfer" },
+      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.01 * m, currency: currency, createdAt: stamp("31/10/2026 21:05:00"), ref: "FT262990F2QJ", externalRef: "93c47d1e", status: "success", counterpartyAccount: "2118997861", bank: "Maybank Cambodia PLC", note: "MEKONG TRADERS transfer" },
+      { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 3.93 * m, currency: currency, createdAt: stamp("30/10/2026 22:34:00"), ref: "FT262940A7VB", externalRef: "7fa2c918", status: "success", counterpartyAccount: "000778899001", bank: "ACLEDA Bank", note: "Payment to ANGKOR SUPPLY" },
+      { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 50 * m, currency: currency, createdAt: stamp("30/10/2026 20:56:00"), ref: "FT262940A6TD", externalRef: "24bd90f5", status: "success", counterpartyAccount: "000778899001", bank: "ACLEDA Bank", note: "Payment to ANGKOR SUPPLY" },
+      { direction: "out", title: "Send to KHOEURN BUNTHOEURN", amount: 1.99 * m, currency: currency, createdAt: stamp("30/10/2026 20:24:00"), ref: "FT262940A5RP", externalRef: "c81e3b67", status: "success", counterpartyAccount: "000665544332", bank: "Wing Bank", note: "Transfer to KHOEURN BUNTHOEURN" },
+      { direction: "out", title: "TOP UP PHONE NUMBER - 0979935566", amount: 1 * m, currency: currency, createdAt: stamp("30/10/2026 19:57:00"), ref: "FT262940A4LM", externalRef: "45a9d02c", status: "success", counterpartyAccount: "0979935566", bank: "Mobile top-up", note: "Top-up 0979935566" },
+      { direction: "out", title: "Send to TIMES MEDIA", amount: 5 * m, currency: currency, createdAt: stamp("30/10/2026 19:19:00"), ref: "FT262940A3HN", externalRef: "de07b154", status: "success", counterpartyAccount: "000554433221", bank: "ABA Bank", note: "Payment to TIMES MEDIA" }
     ];
   }
 
