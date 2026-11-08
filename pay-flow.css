@@ -404,6 +404,11 @@
 }
 .bill-amount-input:focus { outline: none; }
 .bill-amount-input::placeholder { color: #b9c0cc; font-weight: 700; }
+.bill-hint {
+  margin: 8px 0 0; text-align: center;
+  font-size: 13px; font-weight: 600; color: #e8402a;
+}
+.bill-hint[hidden] { display: none; }
 .bill-cur {
   font-size: 17px; font-weight: 800; letter-spacing: 0.8px;
   color: #e8402a; text-transform: uppercase;

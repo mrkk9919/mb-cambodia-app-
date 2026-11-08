@@ -35,6 +35,7 @@
   var billAvatar = document.getElementById("bill-avatar");
   var pfCur = document.getElementById("pf-cur");
   var pfAmount = document.getElementById("pf-amount");
+  var pfAmountHint = document.getElementById("pf-amount-hint");
   var pfNote = document.getElementById("pf-note");
   var pfFromName = document.getElementById("pf-from-name");
   var pfFromAccount = document.getElementById("pf-from-account");
@@ -349,10 +350,12 @@
     pfSuccessBankShort.textContent = bankShort || bank;
 
     pfCur.textContent = currency;
-    pfAmount.value = info.amount ? money(info.amount, currency) : "";
+    var prefill = info.amount === null || info.amount === undefined || info.amount === "" ? "" : String(info.amount);
+    if (prefill && currency === "KHR") prefill = String(Math.round(Number(prefill)));
+    pfAmount.value = prefill;
     pfNote.value = (info.merchant || "") + " transfer";
     sizeAmountInput();
-    pfNext.disabled = !(Number(String(pfAmount.value).replace(/,/g, "")) > 0);
+    refreshAmountState();
     pfConfirmBtn.disabled = false;
     pfConfirmBtn.textContent = "\u1794\u1789\u17D2\u1787\u17B6\u1780\u17CB";
     pfRate.textContent = "1 USD = 4,083.00 KHR";
@@ -381,6 +384,57 @@
 
   function readAmount() {
     return Number(String(pfAmount.value).replace(/,/g, ""));
+  }
+
+  // 小数位：KHR 不允许小数，USD 最多 2 位
+  function amountDecimals(currency) { return currency === "KHR" ? 0 : 2; }
+
+  function amountMax(currency) { return currency === "KHR" ? 99999999999 : 99999999.99; }
+
+  // 清洗输入：只保留数字与一个小数点，限制小数位并去掉多余前导零
+  function sanitizeAmount(raw, currency) {
+    var cleaned = String(raw == null ? "" : raw).replace(/[^0-9.]/g, "");
+    var dot = cleaned.indexOf(".");
+    if (dot > -1) {
+      cleaned = cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, "");
+    }
+    var decimals = amountDecimals(currency);
+    if (decimals === 0) {
+      cleaned = cleaned.split(".")[0];
+    } else if (cleaned.indexOf(".") > -1) {
+      var parts = cleaned.split(".");
+      cleaned = parts[0] + "." + parts[1].slice(0, decimals);
+    }
+    cleaned = cleaned.replace(/^0+(?=\d)/, "");
+    if (cleaned.charAt(0) === ".") cleaned = "0" + cleaned;
+    return cleaned;
+  }
+
+  // 校验金额：上限与可用余额
+  function amountError() {
+    var currency = (state.current && state.current.currency) || "USD";
+    var value = readAmount();
+    if (!(value > 0)) return "";
+    var max = amountMax(currency);
+    if (value > max) {
+      return "Amount exceeds the maximum of " + currencyAmount(max, currency);
+    }
+    if (typeof fromAccount.balance === "number" && fromAccount.currency) {
+      var inAccount = currency === fromAccount.currency ? value : convertAmount(value, currency);
+      if (inAccount > fromAccount.balance) {
+        return "Amount exceeds your available balance " + currencyAmount(fromAccount.balance, fromAccount.currency);
+      }
+    }
+    return "";
+  }
+
+  function refreshAmountState() {
+    var error = amountError();
+    if (pfAmountHint) {
+      pfAmountHint.textContent = error;
+      pfAmountHint.hidden = !error;
+    }
+    pfNext.disabled = !!error || !(readAmount() > 0);
   }
 
   function openBakong() {
@@ -609,9 +663,26 @@
   /* ---------- flow events ---------- */
 
   pfAmount.addEventListener("input", function () {
-    var cleaned = pfAmount.value.replace(/[^0-9.]/g, "");
-    if (cleaned !== pfAmount.value) pfAmount.value = cleaned;
-    pfNext.disabled = !(Number(cleaned) > 0);
+    var currency = (state.current && state.current.currency) || "USD";
+    var before = pfAmount.value;
+    var caret = pfAmount.selectionStart;
+    var cleaned = sanitizeAmount(before, currency);
+    if (cleaned !== before) {
+      // 尽量保持光标位置（按光标前的有效字符数还原）
+      var kept = String(before).slice(0, caret == null ? before.length : caret).replace(/[^0-9.]/g, "").length;
+      pfAmount.value = cleaned;
+      var pos = Math.min(kept, cleaned.length);
+      try { pfAmount.setSelectionRange(pos, pos); } catch (err) { /* 忽略不支持的光标设置 */ }
+    }
+    refreshAmountState();
+    sizeAmountInput();
+  });
+
+  pfAmount.addEventListener("blur", function () {
+    var currency = (state.current && state.current.currency) || "USD";
+    var value = sanitizeAmount(pfAmount.value, currency).replace(/\.$/, "");
+    if (value !== pfAmount.value) pfAmount.value = value;
+    refreshAmountState();
     sizeAmountInput();
   });
 
