@@ -25,7 +25,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script defer src="./assets/index-tGulQzRr.js"></script>
     <link rel="stylesheet" href="./assets/index-BIeGMN93.css">
-    <link rel="stylesheet" href="./scan.css?v=3">
+    <link rel="stylesheet" href="./scan.css?v=4">
     <link rel="stylesheet" href="./pay-flow.css?v=10">
     <link rel="stylesheet" href="./account.css?v=4">
     <link rel="stylesheet" href="./referral.css?v=1">
@@ -363,21 +363,62 @@
       </section>
 
     </main>
-      <!-- my QR code (receive) -->
+      <!-- my KHR QR (receive) -->
       <div class="myqr" id="myqr" aria-hidden="true">
-        <div class="myqr-backdrop" data-myqr-close></div>
-        <section class="myqr-card" role="dialog" aria-modal="true" aria-label="My QR code">
-          <h2 class="myqr-title">My QR Code</h2>
-          <p class="myqr-sub">Let the payer scan this code with any Bakong member app</p>
-          <div class="myqr-box">
-            <img id="myqr-img" alt="My KHQR code" />
-            <p class="myqr-loading" id="myqr-loading">Generating…</p>
+        <header class="myqr-header">
+          <button class="myqr-icon-btn" id="myqr-back" type="button" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <h1 class="myqr-title">My KHR QR</h1>
+          <button class="myqr-icon-btn" id="myqr-home" type="button" aria-label="Home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/></svg>
+          </button>
+        </header>
+        <main class="myqr-body">
+          <p class="myqr-label">SELECT RECEIVING ACCOUNT:</p>
+          <div class="myqr-accounts" id="myqr-accounts"></div>
+
+          <div class="myqr-khqr-card" id="myqr-khqr-card">
+            <div class="myqr-khqr-band"><span class="myqr-khqr-wordmark">KHR<em>QR</em></span></div>
+            <p class="myqr-name" id="myqr-name">MB Bank Cambodia</p>
+            <p class="myqr-amount" id="myqr-amount">0</p>
+            <div class="myqr-dashed"></div>
+            <div class="myqr-box">
+              <img id="myqr-img" alt="My KHR QR code" />
+              <div class="myqr-center-logo" aria-hidden="true">
+                <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#d91f2b"/><g fill="#fff"><path d="M32 16l3.6 7.3 8 1.2-5.8 5.6 1.4 8-7.2-3.8-7.2 3.8 1.4-8L20.4 24.5l8-1.2z"/></g></svg>
+              </div>
+              <p class="myqr-loading" id="myqr-loading">Generating…</p>
+            </div>
           </div>
-          <p class="myqr-name" id="myqr-name">MB Bank Cambodia</p>
-          <p class="myqr-account" id="myqr-account"></p>
+
+          <button class="myqr-set-amount" id="myqr-set-amount" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Set amount
+          </button>
+
+          <div class="myqr-actions">
+            <button class="myqr-action" id="myqr-share" type="button" aria-label="Share">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></svg>
+            </button>
+            <button class="myqr-action" id="myqr-download" type="button" aria-label="Download">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            </button>
+          </div>
           <p class="myqr-status" id="myqr-status" role="status" aria-live="polite"></p>
-          <button class="myqr-close" id="myqr-close" type="button">Close</button>
-        </section>
+        </main>
+      </div>
+
+      <!-- set amount for my QR -->
+      <div class="myqr-amount-sheet" id="myqr-amount-sheet" aria-hidden="true">
+        <div class="myqr-amount-card" role="dialog" aria-modal="true" aria-label="Set amount">
+          <p class="myqr-amount-title" id="myqr-amount-title">Set amount</p>
+          <input class="myqr-amount-input" id="myqr-amount-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Amount" />
+          <div class="myqr-amount-row">
+            <button class="myqr-amount-btn cancel" id="myqr-amount-cancel" type="button">Cancel</button>
+            <button class="myqr-amount-btn confirm" id="myqr-amount-confirm" type="button">Confirm</button>
+          </div>
+        </div>
       </div>
 
 
@@ -863,7 +904,7 @@
       </main>
     <script src="./jsqr.min.js"></script>
     <script src="./qrcode.min.js"></script>
-    <script src="./scan.js?v=18"></script>
+    <script src="./scan.js?v=19"></script>
     <script src="./transfer-entry.js?v=1"></script>
     <script src="./account.js?v=5"></script>
     <script src="./home-balance.js?v=2"></script>

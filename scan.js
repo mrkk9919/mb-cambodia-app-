@@ -1356,17 +1356,124 @@
     }
   }, true);
 
-  /* ---------- my QR code (receive) ---------- */
+  /* ---------- my KHR QR (receive) ---------- */
 
   var myqrSheet = document.getElementById("myqr");
   var myqrBtn = document.getElementById("qr-myqr");
   var myqrImg = document.getElementById("myqr-img");
   var myqrLoading = document.getElementById("myqr-loading");
   var myqrName = document.getElementById("myqr-name");
-  var myqrAccount = document.getElementById("myqr-account");
+  var myqrAmountEl = document.getElementById("myqr-amount");
   var myqrStatus = document.getElementById("myqr-status");
-  var myqrClose = document.getElementById("myqr-close");
+  var myqrAccountsEl = document.getElementById("myqr-accounts");
+  var myqrBack = document.getElementById("myqr-back");
+  var myqrHome = document.getElementById("myqr-home");
+  var myqrSetAmountBtn = document.getElementById("myqr-set-amount");
+  var myqrShareBtn = document.getElementById("myqr-share");
+  var myqrDownloadBtn = document.getElementById("myqr-download");
+  var myqrAmountSheet = document.getElementById("myqr-amount-sheet");
+  var myqrAmountInput = document.getElementById("myqr-amount-input");
+  var myqrAmountCancel = document.getElementById("myqr-amount-cancel");
+  var myqrAmountConfirm = document.getElementById("myqr-amount-confirm");
+
+  var MYQR_HOLDER = "SOKHA CHAN";
   var myqrFromScanner = false;
+  var myqrState = { accounts: [], accountId: null, currency: "KHR", amount: 0, req: 0 };
+
+  function myqrMoney(value, currency) {
+    var n = Number(value) || 0;
+    if (currency === "KHR") return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function myqrSetStatus(text, kind) {
+    if (!myqrStatus) return;
+    myqrStatus.textContent = text || "";
+    if (kind === "note") myqrStatus.setAttribute("data-kind", "note");
+    else myqrStatus.removeAttribute("data-kind");
+  }
+
+  function myqrDefaultId(accounts) {
+    var preferred = accounts.filter(function (a) {
+      return String(a.label || "").indexOf("Current") > -1;
+    })[0];
+    return (preferred || accounts[0] || {}).id;
+  }
+
+  function myqrOrdered(accounts) {
+    var khr = accounts.filter(function (a) { return String(a.currency || "").toUpperCase() === "KHR"; });
+    var usd = accounts.filter(function (a) { return String(a.currency || "").toUpperCase() === "USD"; });
+    return khr.concat(usd);
+  }
+
+  function renderMyQrAccounts() {
+    if (!myqrAccountsEl) return;
+    myqrAccountsEl.innerHTML = "";
+    var defId = myqrDefaultId(myqrState.accounts);
+    myqrOrdered(myqrState.accounts).forEach(function (acct) {
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "myqr-acct" + (acct.id === myqrState.accountId ? " active" : "");
+      card.setAttribute("data-account-id", acct.id);
+      card.setAttribute("aria-pressed", acct.id === myqrState.accountId ? "true" : "false");
+
+      var cur = document.createElement("span");
+      cur.className = "myqr-acct-cur";
+      cur.textContent = String(acct.currency || "").toUpperCase();
+      var num = document.createElement("span");
+      num.className = "myqr-acct-num";
+      num.textContent = acct.id;
+      card.appendChild(cur);
+      card.appendChild(num);
+
+      if (acct.id === defId) {
+        var badge = document.createElement("span");
+        badge.className = "myqr-acct-badge";
+        badge.textContent = "Default";
+        card.appendChild(badge);
+        var star = document.createElement("span");
+        star.className = "myqr-acct-star";
+        star.setAttribute("aria-hidden", "true");
+        star.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>';
+        card.appendChild(star);
+      }
+
+      card.addEventListener("click", function () {
+        selectMyQrAccount(acct.id);
+      });
+      myqrAccountsEl.appendChild(card);
+    });
+  }
+
+  function currentMyQrAccount() {
+    return myqrState.accounts.filter(function (a) {
+      return a.id === myqrState.accountId;
+    })[0] || myqrState.accounts[0] || null;
+  }
+
+  function selectMyQrAccount(id) {
+    if (!id || id === myqrState.accountId) return;
+    var acct = myqrState.accounts.filter(function (a) { return a.id === id; })[0];
+    if (!acct) return;
+    myqrState.accountId = id;
+    myqrState.currency = String(acct.currency || "KHR").toUpperCase();
+    myqrState.amount = 0;
+    renderMyQrAccounts();
+    generateMyQr();
+  }
+
+  function loadMyQrAccounts() {
+    var demo = Array.isArray(window.mbDemoAccounts) ? window.mbDemoAccounts.slice() : [];
+    return apiFetch("/internal/accounts", {
+      headers: { Accept: "application/json" },
+      cache: "no-store"
+    }).then(function (data) {
+      var list = data && Array.isArray(data.accounts) && data.accounts.length ? data.accounts : demo;
+      return list;
+    }).catch(function () {
+      return demo;
+    });
+  }
 
   function drawQr(text) {
     if (!window.qrcode) return false;
@@ -1377,58 +1484,338 @@
     return true;
   }
 
-  function openMyQr() {
-    myqrFromScanner = overlay.classList.contains("open");
-    if (myqrFromScanner) stopCamera();
-    myqrStatus.textContent = "";
+  function myqrAmountLabel() {
+    if (!myqrState.amount) return "0";
+    return myqrMoney(myqrState.amount, myqrState.currency);
+  }
+
+  function paintMyQrAmount() {
+    if (myqrAmountEl) myqrAmountEl.textContent = myqrAmountLabel();
+  }
+
+  function generateMyQr() {
+    var acct = currentMyQrAccount();
+    if (!acct) return;
+    var reqId = ++myqrState.req;
+    myqrState.currency = String(acct.currency || "KHR").toUpperCase();
+    paintMyQrAmount();
+    if (myqrName) myqrName.textContent = MYQR_HOLDER;
     myqrImg.removeAttribute("data-ready");
     myqrImg.removeAttribute("src");
-    myqrLoading.hidden = false;
-    myqrSheet.classList.add("open");
-    myqrSheet.setAttribute("aria-hidden", "false");
-    if (envMode === "demo-static") {
-      // static hosting: show the bundled demo receive QR (clearly labelled)
-      myqrImg.src = "./myqr-demo.png";
+    if (myqrLoading) myqrLoading.hidden = false;
+    myqrSetStatus("", "");
+
+    function finished() {
+      if (reqId !== myqrState.req) return;
+      if (myqrLoading) myqrLoading.hidden = true;
       myqrImg.setAttribute("data-ready", "1");
-      myqrName.textContent = "MB Cambodia (demo)";
-      myqrAccount.textContent = "angkor.travel@acleda";
-      myqrLoading.hidden = true;
-      myqrStatus.textContent = "Static preview - shown for demo";
+    }
+
+    function preview() {
+      var payload = "MB CAMBODIA DEMO|" + myqrState.currency + "|" +
+        (myqrState.amount ? myqrState.amount : "0") + "|" + acct.id;
+      if (!drawQr(payload)) {
+        myqrSetStatus("QR renderer failed to load.");
+        if (myqrLoading) myqrLoading.hidden = true;
+        return;
+      }
+      finished();
+      myqrSetStatus("Demo QR — shown for preview, not a live KHQR", "note");
+    }
+
+    if (envMode === "demo-static") {
+      preview();
       return;
     }
+
     apiFetch("/qr/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({})
+      body: JSON.stringify({
+        amount: myqrState.amount || null,
+        currency: myqrState.currency,
+        accountId: acct.id
+      })
     }).then(function (data) {
+      if (reqId !== myqrState.req) return;
       if (!drawQr(data.qr)) {
-        myqrStatus.textContent = "QR renderer failed to load.";
+        myqrSetStatus("QR renderer failed to load.");
+        if (myqrLoading) myqrLoading.hidden = true;
         return;
       }
-      myqrImg.setAttribute("data-ready", "1");
-      myqrName.textContent = data.merchant || "MB Bank Cambodia";
-      myqrAccount.textContent = data.account || "";
-    }).catch(function (err) {
-      myqrStatus.textContent = err.message || "Unable to generate your QR code.";
-    }).then(function () {
-      myqrLoading.hidden = true;
+      finished();
+      if (myqrName) myqrName.textContent = data.merchant || MYQR_HOLDER;
+      myqrSetStatus("");
+    }).catch(function () {
+      if (reqId !== myqrState.req) return;
+      preview();
+    });
+  }
+
+  function openQrAmount() {
+    if (!myqrAmountSheet) return;
+    myqrAmountInput.value = myqrState.amount ? String(myqrState.amount) : "";
+    myqrAmountSheet.classList.add("open");
+    myqrAmountSheet.setAttribute("aria-hidden", "false");
+    window.setTimeout(function () {
+      try { myqrAmountInput.focus(); } catch (e) {}
+    }, 60);
+  }
+
+  function closeQrAmount() {
+    if (!myqrAmountSheet) return;
+    if (document.activeElement && myqrAmountSheet.contains(document.activeElement)) {
+      try { document.activeElement.blur(); } catch (e) {}
+    }
+    myqrAmountSheet.classList.remove("open");
+    myqrAmountSheet.setAttribute("aria-hidden", "true");
+  }
+
+  function applyQrAmount() {
+    var raw = String(myqrAmountInput.value || "").replace(/,/g, "").trim();
+    var value = Number(raw);
+    if (raw && (!isFinite(value) || value < 0)) {
+      myqrSetStatus("Enter a valid amount.");
+      return;
+    }
+    if (myqrState.currency === "KHR") value = Math.round(value);
+    else value = Math.round(value * 100) / 100;
+    myqrState.amount = value > 0 ? value : 0;
+    closeQrAmount();
+    generateMyQr();
+  }
+
+  function myqrDefaultSelection(accounts) {
+    var keep = accounts.filter(function (a) { return a.id === myqrState.accountId; })[0];
+    if (keep) return keep.id;
+    var khr = accounts.filter(function (a) {
+      return String(a.currency || "").toUpperCase() === "KHR";
+    })[0];
+    return (khr || accounts[0] || {}).id || null;
+  }
+
+  function openMyQr() {
+    myqrFromScanner = overlay.classList.contains("open");
+    if (myqrFromScanner) stopCamera();
+    myqrSheet.classList.add("open");
+    myqrSheet.setAttribute("aria-hidden", "false");
+    myqrSetStatus("", "");
+    if (myqrName) myqrName.textContent = MYQR_HOLDER;
+    loadMyQrAccounts().then(function (accounts) {
+      myqrState.accounts = accounts;
+      myqrState.accountId = myqrDefaultSelection(accounts);
+      myqrState.amount = 0;
+      renderMyQrAccounts();
+      generateMyQr();
     });
   }
 
   function closeMyQr() {
+    closeQrAmount();
+    if (document.activeElement && myqrSheet.contains(document.activeElement)) {
+      try { document.activeElement.blur(); } catch (e) {}
+    }
     myqrSheet.classList.remove("open");
     myqrSheet.setAttribute("aria-hidden", "true");
     if (myqrFromScanner) startCamera();
     myqrFromScanner = false;
   }
 
-  if (myqrBtn) myqrBtn.addEventListener("click", openMyQr);
-  if (myqrClose) myqrClose.addEventListener("click", closeMyQr);
-  if (myqrSheet) {
-    Array.prototype.forEach.call(myqrSheet.querySelectorAll("[data-myqr-close]"), function (el) {
-      el.addEventListener("click", closeMyQr);
+  function goAppHome() {
+    var home = document.querySelector('[data-testid="nav-home"]');
+    closeMyQr();
+    if (home && home.click) home.click();
+  }
+
+  /* --- download: draw the full KHQR card on a canvas --- */
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  function buildQrCard() {
+    return new Promise(function (resolve, reject) {
+      if (!myqrImg.getAttribute("data-ready")) {
+        reject(new Error("QR not ready"));
+        return;
+      }
+      var acct = currentMyQrAccount() || {};
+      var img = new Image();
+      img.onload = function () {
+        var w = 760;
+        var h = 1180;
+        var cv = document.createElement("canvas");
+        cv.width = w;
+        cv.height = h;
+        var ctx = cv.getContext("2d");
+        ctx.fillStyle = "#f4f6fa";
+        ctx.fillRect(0, 0, w, h);
+
+        var cx = 40;
+        var cy = 40;
+        var cw = w - 80;
+        var ch = h - 80;
+        ctx.save();
+        roundRectPath(ctx, cx, cy, cw, ch, 32);
+        ctx.clip();
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(cx, cy, cw, ch);
+
+        ctx.fillStyle = "#e01b24";
+        ctx.fillRect(cx, cy, cw, 150);
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.font = "800 54px -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+        ctx.fillText("KHRQR", w / 2, cy + 96);
+
+        ctx.fillStyle = "#0a1936";
+        ctx.font = "700 36px -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+        ctx.fillText(MYQR_HOLDER, w / 2, cy + 236);
+
+        ctx.font = "800 46px -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+        ctx.fillText(myqrAmountLabel(), w / 2, cy + 300);
+
+        ctx.strokeStyle = "#c9d0dc";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([12, 10]);
+        ctx.beginPath();
+        ctx.moveTo(cx + 56, cy + 350);
+        ctx.lineTo(cx + cw - 56, cy + 350);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        var qrSize = 420;
+        ctx.drawImage(img, (w - qrSize) / 2, cy + 400, qrSize, qrSize);
+
+        ctx.fillStyle = "#6b7689";
+        ctx.font = "500 26px -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+        ctx.fillText("Account " + String(acct.id || ""), w / 2, cy + 900);
+        ctx.font = "400 24px -apple-system, 'Segoe UI', Roboto, Arial, sans-serif";
+        ctx.fillText("Scan with any KHQR member app", w / 2, cy + 946);
+        ctx.restore();
+        resolve(cv);
+      };
+      img.onerror = function () { reject(new Error("QR image not loaded")); };
+      img.src = myqrImg.src;
     });
   }
+
+  function canvasToBlob(cv) {
+    return new Promise(function (resolve) {
+      if (cv.toBlob) {
+        cv.toBlob(function (blob) { resolve(blob); }, "image/png");
+      } else {
+        resolve(null);
+      }
+    });
+  }
+
+  function downloadMyQr() {
+    buildQrCard().then(function (cv) {
+      return canvasToBlob(cv).then(function (blob) {
+        var acct = currentMyQrAccount() || {};
+        var name = "MB-KHR-QR-" + String(acct.id || "receive") +
+          (myqrState.amount ? "-" + String(myqrState.amount) : "") + ".png";
+        var url;
+        var revoke = false;
+        if (blob) {
+          url = URL.createObjectURL(blob);
+          revoke = true;
+        } else {
+          url = cv.toDataURL("image/png");
+        }
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        if (revoke) window.setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
+        myqrSetStatus("Saved to your downloads", "note");
+      });
+    }).catch(function () {
+      myqrSetStatus("Unable to prepare the image. Try again.");
+    });
+  }
+
+  function shareMyQr() {
+    var acct = currentMyQrAccount() || {};
+    var text = "My KHQR — " + MYQR_HOLDER + " · Account " + String(acct.id || "") +
+      (myqrState.amount ? " · " + myqrAmountLabel() + " " + myqrState.currency : "");
+    function copy() {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          myqrSetStatus("QR details copied", "note");
+        }).catch(function () {
+          myqrSetStatus("Unable to share on this device.");
+        });
+      } else {
+        myqrSetStatus("Unable to share on this device.");
+      }
+    }
+    buildQrCard().then(function (cv) {
+      return canvasToBlob(cv).then(function (blob) {
+        if (!blob || !navigator.canShare || !window.File) {
+          if (navigator.share) return navigator.share({ title: "My KHQR", text: text });
+          copy();
+          return;
+        }
+        var file = new File([blob], "MB-KHR-QR.png", { type: "image/png" });
+        if (navigator.canShare({ files: [file] }) && navigator.share) {
+          return navigator.share({ title: "My KHQR", text: text, files: [file] });
+        }
+        if (navigator.share) return navigator.share({ title: "My KHQR", text: text });
+        copy();
+      });
+    }).catch(function (err) {
+      if (err && err.name === "AbortError") return;
+      copy();
+    });
+  }
+
+  if (myqrBtn) myqrBtn.addEventListener("click", openMyQr);
+  if (myqrBack) myqrBack.addEventListener("click", closeMyQr);
+  if (myqrHome) myqrHome.addEventListener("click", goAppHome);
+  if (myqrSetAmountBtn) myqrSetAmountBtn.addEventListener("click", openQrAmount);
+  if (myqrAmountCancel) myqrAmountCancel.addEventListener("click", closeQrAmount);
+  if (myqrAmountConfirm) myqrAmountConfirm.addEventListener("click", applyQrAmount);
+  if (myqrAmountSheet) {
+    myqrAmountSheet.addEventListener("click", function (e) {
+      if (e.target === myqrAmountSheet) closeQrAmount();
+    });
+  }
+  if (myqrAmountInput) {
+    myqrAmountInput.addEventListener("input", function () {
+      var digits = String(myqrAmountInput.value || "").replace(/[^0-9.]/g, "");
+      var parts = digits.split(".");
+      var clean = parts.shift() + (parts.length ? "." + parts.join("") : "");
+      myqrAmountInput.value = clean;
+    });
+    myqrAmountInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        applyQrAmount();
+      }
+    });
+  }
+  if (myqrDownloadBtn) myqrDownloadBtn.addEventListener("click", downloadMyQr);
+  if (myqrShareBtn) myqrShareBtn.addEventListener("click", shareMyQr);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (myqrAmountSheet && myqrAmountSheet.classList.contains("open")) { closeQrAmount(); return; }
+    if (myqrSheet && myqrSheet.classList.contains("open")) closeMyQr();
+  });
 
   apiFetch("/health").then(function (d) {
     envMode = (d && d.bakong && d.bakong.mode) || null;
