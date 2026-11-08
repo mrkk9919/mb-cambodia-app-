@@ -14,5 +14,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bakong-khqr": "^1.0.20"
+  },
+  "overrides": {
+    "axios": "^1.21.0"
   }
 }
