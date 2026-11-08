@@ -401,9 +401,14 @@
       .replace(/^(Received from|Send to|KHQR payment to)\s+/i, "") || "Account holder";
   }
 
-  function transactionAccountText(id, bank, currency) {
+  function partyAccountText(id, bank) {
     var value = id ? String(id) : "";
     if (bank) value += (value ? " - " : "") + bank;
+    return value || "Account details unavailable";
+  }
+
+  function ownAccountText(id, currency) {
+    var value = id ? String(id) : "";
     if (currency) value += (value ? " | " : "") + currency;
     return value || "Account details unavailable";
   }
@@ -457,11 +462,11 @@
     txdNodes.fromName.textContent = incoming ? party : owner;
     txdNodes.toName.textContent = incoming ? owner : party;
     txdNodes.fromAccount.textContent = incoming
-      ? transactionAccountText(counterpartyAccount, bank, currency)
-      : transactionAccountText(detailAccount && detailAccount.id, "", currency);
+      ? partyAccountText(counterpartyAccount, bank)
+      : ownAccountText(detailAccount && detailAccount.id, currency);
     txdNodes.toAccount.textContent = incoming
-      ? transactionAccountText(detailAccount && detailAccount.id, "", currency)
-      : transactionAccountText(counterpartyAccount, bank, currency);
+      ? ownAccountText(detailAccount && detailAccount.id, currency)
+      : partyAccountText(counterpartyAccount, bank);
     paintPartyMark(txdNodes.fromMark, bank, !incoming);
     paintPartyMark(txdNodes.toMark, bank, incoming);
     txdNodes.status.textContent = status;
@@ -573,9 +578,9 @@
         Number(hm[0]), Number(hm[1]), Number(hm[2])).getTime();
     }
     return [
-      { direction: "in", title: "Received from ANGKOR TRAVEL", amount: 0.07 * m, currency: currency, createdAt: stamp("05/11/2026 20:52:00"), ref: "FT263140N5GL", externalRef: "052d185c", status: "success", counterpartyAccount: "wing_khqr@wing", bank: "Wing Bank", note: "ANGKOR TRAVEL transfer" },
+      { direction: "in", title: "Received from ANGKOR TRAVEL", amount: 0.07 * m, currency: currency, createdAt: stamp("05/11/2026 20:52:00"), ref: "FT263140N5GL", externalRef: "052d185c", status: "success", counterpartyAccount: "000889900112", bank: "Wing Bank", note: "ANGKOR TRAVEL transfer" },
       { direction: "in", title: "Received from SOKHA CHAN", amount: 0.01 * m, currency: currency, createdAt: stamp("05/11/2026 20:51:00"), ref: "FT263140N4KM", externalRef: "6b31f0a2", status: "success", counterpartyAccount: "000987654321", bank: "MB Bank Cambodia", note: "SOKHA CHAN transfer" },
-      { direction: "in", title: "Received from ANGKOR TRAVEL", amount: 0.01 * m, currency: currency, createdAt: stamp("31/10/2026 21:05:00"), ref: "FT262990F2QJ", externalRef: "93c47d1e", status: "success", counterpartyAccount: "wing_khqr@wing", bank: "Wing Bank", note: "ANGKOR TRAVEL transfer" },
+      { direction: "in", title: "Received from ANGKOR TRAVEL", amount: 0.01 * m, currency: currency, createdAt: stamp("31/10/2026 21:05:00"), ref: "FT262990F2QJ", externalRef: "93c47d1e", status: "success", counterpartyAccount: "000889900112", bank: "Wing Bank", note: "ANGKOR TRAVEL transfer" },
       { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 3.93 * m, currency: currency, createdAt: stamp("30/10/2026 22:34:00"), ref: "FT262940A7VB", externalRef: "7fa2c918", status: "success", counterpartyAccount: "000778899001", bank: "ACLEDA Bank", note: "Payment to ANGKOR SUPPLY" },
       { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 50 * m, currency: currency, createdAt: stamp("30/10/2026 20:56:00"), ref: "FT262940A6TD", externalRef: "24bd90f5", status: "success", counterpartyAccount: "000778899001", bank: "ACLEDA Bank", note: "Payment to ANGKOR SUPPLY" },
       { direction: "out", title: "Send to KHOEURN BUNTHOEURN", amount: 1.99 * m, currency: currency, createdAt: stamp("30/10/2026 20:24:00"), ref: "FT262940A5RP", externalRef: "c81e3b67", status: "success", counterpartyAccount: "000665544332", bank: "Wing Bank", note: "Transfer to KHOEURN BUNTHOEURN" },
