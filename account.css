@@ -343,8 +343,8 @@
   font-size: 15px; font-weight: 800; line-height: 1;
 }
 .txd-mark small { margin-top: 3px; font-size: 8px; font-weight: 500; }
-.txd-mark-recipient { padding: 0; overflow: hidden; border-radius: 6px; background: transparent; }
-.txd-mark-recipient svg { display: block; width: 100%; height: 100%; }
+.txd-mark-recipient { padding: 4px; overflow: hidden; border-radius: 15px; background: #fff; border: 1px solid #e6ebf3; }
+.txd-mark-recipient img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .txd-party-copy { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .txd-party-copy .txd-label { margin: 0; }
 .txd-party-copy strong { color: #171b23; font-size: 18px; line-height: 1.3; overflow-wrap: anywhere; }

@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "mb-cambodia-pwa-";
-const CACHE_NAME = CACHE_PREFIX + "v3";
+const CACHE_NAME = CACHE_PREFIX + "v4";
 const APP_ROOT = new URL("./", self.location.href);
 const PRECACHE = [
   "index.html",
@@ -20,7 +20,7 @@ const PRECACHE = [
   "assets/index-BIeGMN93.css",
   "scan.css?v=3",
   "pay-flow.css?v=10",
-  "account.css?v=3",
+  "account.css?v=4",
   "referral.css?v=1",
   "notifications.css?v=2",
   "settings.css?v=1",
@@ -42,6 +42,7 @@ const PRECACHE = [
   "savings-investment.js",
   "cash-to-atm.js",
   "mb-cambodia-logo.png",
+  "acleda-bank-logo.png",
   "mb-bottom-nav.png",
   "mb-enrich-banner.jpeg",
   "payment-providers.png",
