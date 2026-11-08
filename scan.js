@@ -1401,9 +1401,18 @@
   }
 
   function myqrOrdered(accounts) {
-    // 本页只收 KHR：列表里不出现 USD 账户
+    // 个人收款码挂两个账户：一个 KHR、一个 USD（各取默认/第一个）
     var khr = accounts.filter(function (a) { return String(a.currency || "").toUpperCase() === "KHR"; });
-    return khr.length ? khr : accounts;
+    var usd = accounts.filter(function (a) { return String(a.currency || "").toUpperCase() === "USD"; });
+    function pick(list) {
+      return list.filter(function (a) {
+        return String(a.label || "").indexOf("Current") > -1;
+      })[0] || list[0];
+    }
+    var out = [];
+    if (pick(khr)) out.push(pick(khr));
+    if (pick(usd)) out.push(pick(usd));
+    return out.length ? out : accounts;
   }
 
   function renderMyQrAccounts() {
