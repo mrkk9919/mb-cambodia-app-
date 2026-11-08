@@ -329,7 +329,11 @@
 .txd-content { width: min(100%, 720px); margin: 0 auto; padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); }
 .txd-summary { padding: 8px 2px 24px; }
 .txd-label { margin: 0 0 7px; color: #7b8493; font-size: 14px; }
-.txd-amount { margin: 0; color: #d92720; font-size: clamp(30px, 8vw, 42px); font-weight: 700; letter-spacing: 0.2px; overflow-wrap: anywhere; }
+.txd-summary .txd-label {
+  margin-bottom: 10px; color: #0a66e8; font-size: 13px; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase;
+}
+.txd-amount { margin: 0; color: #e0211a; font-size: clamp(30px, 7.5vw, 38px); font-weight: 700; letter-spacing: 0.2px; overflow-wrap: anywhere; }
 .txd-amount.in { color: #159447; }
 .txd-parties, .txd-info {
   background: #fff; border-radius: 18px; box-shadow: 0 5px 18px rgba(25, 42, 70, 0.04);
@@ -338,14 +342,24 @@
 .txd-party { display: flex; align-items: center; gap: 16px; min-height: 112px; }
 .txd-party + .txd-party { border-top: 1px solid #edf0f5; }
 .txd-mark {
-  flex: 0 0 56px; width: 56px; height: 56px; border-radius: 15px;
+  flex: 0 0 48px; width: 48px; height: 48px; border-radius: 50%;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: linear-gradient(145deg, #1379f3, #173bc4); color: #fff;
-  font-size: 15px; font-weight: 800; line-height: 1;
+  font-size: 14px; font-weight: 800; line-height: 1;
+  overflow: hidden;
 }
 .txd-mark small { margin-top: 3px; font-size: 8px; font-weight: 500; }
-.txd-mark-recipient { padding: 4px; overflow: hidden; border-radius: 15px; background: #fff; border: 1px solid #e6ebf3; }
-.txd-mark-recipient img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.txd-mark.has-logo { background: #fff; border: 1px solid #e6ebf3; padding: 3px; border-radius: 12px; }
+.txd-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.txd-bank-tile {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  padding: 3px; text-align: center;
+  font-size: 9px; font-weight: 700; line-height: 1.15; letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+.txd-bank-tile.wing { background: #00b14f; color: #fff; }
+.txd-bank-tile.maybank { background: #f5bd22; color: #1c1c1c; }
+.txd-bank-tile.generic { background: #eef2f9; color: #29405f; }
 .txd-party-copy { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .txd-party-copy .txd-label { margin: 0; }
 .txd-party-copy strong { color: #171b23; font-size: 18px; line-height: 1.3; overflow-wrap: anywhere; }

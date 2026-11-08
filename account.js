@@ -374,6 +374,8 @@
     externalRef: document.getElementById("txd-external-ref"),
     copyRef: document.getElementById("txd-copy-ref"),
     description: document.getElementById("txd-description"),
+    fromMark: document.getElementById("txd-from-mark"),
+    toMark: document.getElementById("txd-to-mark"),
     toast: document.getElementById("txd-toast")
   };
 
@@ -406,6 +408,33 @@
     return value || "Account details unavailable";
   }
 
+  // 对方头像：本行是 MB 卡片，对手方按银行显示
+  function paintPartyMark(el, bank, isOwn) {
+    if (!el) return;
+    el.classList.remove("has-logo");
+    if (isOwn || !bank) {
+      el.innerHTML = "MB<small>Cambodia</small>";
+      return;
+    }
+    var name = String(bank);
+    if (/acleda/i.test(name)) {
+      el.classList.add("has-logo");
+      el.innerHTML = '<img src="./acleda-bank-logo.png" alt="">';
+      return;
+    }
+    if (/wing/i.test(name)) {
+      el.innerHTML = '<span class="txd-bank-tile wing">Wing Bank</span>';
+      return;
+    }
+    if (/maybank/i.test(name)) {
+      el.innerHTML = '<span class="txd-bank-tile maybank">Maybank</span>';
+      return;
+    }
+    var initials = name.replace(/[^A-Za-z ]/g, "").split(/\s+/).filter(Boolean)
+      .map(function (w) { return w.charAt(0); }).join("").slice(0, 3).toUpperCase();
+    el.innerHTML = '<span class="txd-bank-tile generic">' + (initials || "BANK") + '</span>';
+  }
+
   function openTransactionDetail(t, isSample) {
     if (!transactionDetail || !t) return;
     currentTransaction = t;
@@ -433,6 +462,8 @@
     txdNodes.toAccount.textContent = incoming
       ? transactionAccountText(detailAccount && detailAccount.id, "", currency)
       : transactionAccountText(counterpartyAccount, bank, currency);
+    paintPartyMark(txdNodes.fromMark, bank, !incoming);
+    paintPartyMark(txdNodes.toMark, bank, incoming);
     txdNodes.status.textContent = status;
     txdNodes.status.dataset.state = status === "Success" ? "success" : (status === "Pending" ? "pending" : "failed");
     txdNodes.transferAmount.textContent = amount;
