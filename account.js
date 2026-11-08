@@ -42,6 +42,10 @@
     return String(text == null ? "" : text).replace(/^Demo\s*·\s*/i, "");
   }
 
+  function referenceCode(ref) {
+    return String(ref == null ? "" : ref).replace(/^(?:DEMO-|demo_)/i, "");
+  }
+
   function showToast(text) {
     if (!toast) return;
     toast.textContent = text;
@@ -436,8 +440,8 @@
     txdNodes.transferAmount.textContent = amount;
     txdNodes.time.textContent = formatTime(t.createdAt);
     txdNodes.ref.textContent = t.ref || "Not available";
-    txdNodes.externalRef.textContent = t.externalRef || "Not available";
-    txdNodes.copyRef.disabled = !t.externalRef;
+    txdNodes.externalRef.textContent = referenceCode(t.externalRef) || "Not available";
+    txdNodes.copyRef.disabled = !referenceCode(t.externalRef);
     txdNodes.description.textContent = t.note || stripDemo(t.title || "") || "No description";
     txdNodes.toast.textContent = "";
     if (detail) detail.setAttribute("aria-hidden", "true");
@@ -457,7 +461,7 @@
   if (txdBack) txdBack.addEventListener("click", closeTransactionDetail);
   if (txdNodes.copyRef) {
     txdNodes.copyRef.addEventListener("click", function () {
-      var ref = currentTransaction && currentTransaction.externalRef;
+      var ref = referenceCode(currentTransaction && currentTransaction.externalRef);
       if (!ref) return;
       function copied() { txdNodes.toast.textContent = "External reference copied"; }
       if (navigator.clipboard && navigator.clipboard.writeText) {
