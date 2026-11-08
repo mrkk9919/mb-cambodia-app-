@@ -147,6 +147,18 @@
     return ("00000000" + h).slice(-8);
   }
 
+  // 静态演示（GitHub Pages，无后端）时把成功的支付记在本地，账户明细里可查
+  var LOCAL_TX_KEY = "mb_local_tx";
+
+  function saveLocalTx(record) {
+    try {
+      var list = JSON.parse(localStorage.getItem(LOCAL_TX_KEY) || "[]");
+      if (!(list instanceof Array)) list = [];
+      list.unshift(record);
+      localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(list.slice(0, 100)));
+    } catch (e) { /* 忽略本地存储不可用 */ }
+  }
+
   // brand tile assets bundled in ./assets/banks (fallback: letter mark)
   var BANK_LOGOS = {
     acleda: "acleda.png", aclb: "acleda.png", acledabank: "acleda.png",
@@ -300,7 +312,7 @@
     pfSuccessFrom.textContent = pfSumFrom.textContent;
   }
 
-  var STATIC_FALLBACK_ACCOUNT = { id: "000123456789", name: "SOKHA CHAN", currency: "USD", balance: 1284.5 };
+  var STATIC_FALLBACK_ACCOUNT = { id: "000123456789", name: "SOKHA CHAN", currency: "USD", balance: 18265.5 };
 
   // 付款账户从内部账户表里取第一个 USD 账户
   function loadFromAccount() {
@@ -498,7 +510,12 @@
     apiFetch("/payments/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ qr: state.current.raw, amount: value, note: pfNote.value.trim() })
+      body: JSON.stringify({
+        qr: state.current.raw,
+        amount: value,
+        note: pfNote.value.trim(),
+        from: fromAccount.id || ""
+      })
     }).then(function (payment) {
       state.payment = payment;
       if (payment.recipientBank && payment.recipientBank.name) {

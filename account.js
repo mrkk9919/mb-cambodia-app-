@@ -24,7 +24,7 @@
 
   // shown when there is no backend (GitHub Pages) — same seed data as the server
   var DEMO_ACCOUNTS = [
-    { id: "000123456789", label: "USD · Current", currency: "USD", balance: 1284.5 },
+    { id: "000123456789", label: "USD · Current", currency: "USD", balance: 18265.5 },
     { id: "000987654321", label: "KHR · Savings", currency: "KHR", balance: 4120000 },
     { id: "000555000111", label: "USD · Savings", currency: "USD", balance: 320.75 }
   ];

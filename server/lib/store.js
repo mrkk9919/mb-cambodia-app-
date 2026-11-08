@@ -9,7 +9,7 @@ const FILE = path.join(config.storageDir, "state.json");
 
 const SEED = {
   accounts: [
-    { id: "000123456789", label: "USD · Current", currency: "USD", balance: 1284.5 },
+    { id: "000123456789", label: "USD · Current", currency: "USD", balance: 18265.5 },
     { id: "000987654321", label: "KHR · Savings", currency: "KHR", balance: 4120000 },
     { id: "000555000111", label: "USD · Savings", currency: "USD", balance: 320.75 }
   ],
@@ -200,6 +200,51 @@ function listTransfers(accountId) {
   return all.filter((t) => t.from === accountId || t.to === accountId).slice(0, 30);
 }
 
+/* ---------- external KHQR / Bakong payment ledger ---------- */
+
+const USD_KHR_RATE = 4083;
+
+function convert(amount, from, to) {
+  if (from === to) return amount;
+  return from === "KHR" ? amount / USD_KHR_RATE : amount * USD_KHR_RATE;
+}
+
+/**
+ * 扫码支付（外部 KHQR / Bakong）成功后写入账户流水，并从付款账户扣减余额。
+ * 这样账户明细（Detail Account）里就能查到这笔交易。
+ */
+function recordExternalPayment({ accountId, amount, currency, merchant, note, ref, bank }) {
+  const st = load();
+  const src = st.accounts.find((a) => a.id === accountId);
+  const value = Number(amount);
+  if (!src || !isFinite(value) || value <= 0) {
+    return { ok: false, code: "BAD_PAYMENT", message: "付款账户或金额无效" };
+  }
+  const debit = round(convert(value, currency || src.currency, src.currency), src.currency);
+  if (src.balance < debit) {
+    return { ok: false, code: "INSUFFICIENT_FUNDS", message: "余额不足" };
+  }
+
+  src.balance = round(src.balance - debit, src.currency);
+  const record = {
+    ref: ref || newRef("QR"),
+    from: src.id,
+    to: String(merchant || "KHQR merchant").slice(0, 60),
+    amount: debit,
+    currency: src.currency,
+    note: String(note || "").slice(0, 120),
+    bank: (bank && bank.name) || null,
+    external: true,
+    status: "completed",
+    createdAt: Date.now()
+  };
+  st.transfers.unshift(record);
+  if (st.transfers.length > 200) st.transfers.length = 200;
+  persist();
+
+  return { ok: true, record, account: Object.assign({}, src) };
+}
+
 function round(n, currency) {
   return currency === "KHR" ? Math.round(n) : Math.round(n * 100) / 100;
 }
@@ -215,5 +260,6 @@ module.exports = {
   createAccount,
   getAccount,
   transfer,
-  listTransfers
+  listTransfers,
+  recordExternalPayment
 };

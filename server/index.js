@@ -90,10 +90,30 @@ async function createPayment(body) {
     note: String(body.note || "").slice(0, 80),
     amount,
     currency: decoded.currency,
+    fromAccount: String(body.from || ""),
     deeplink
   });
 
   return { status: 201, body: publicPayment(payment) };
+}
+
+// 支付成功后把该笔交易写入付款账户流水（只记一次）
+function recordLedger(payment) {
+  if (!payment || payment.recorded || !payment.fromAccount) return;
+  const r = store.recordExternalPayment({
+    accountId: payment.fromAccount,
+    amount: payment.amount,
+    currency: payment.currency,
+    merchant: payment.merchant,
+    note: payment.note,
+    ref: payment.ref,
+    bank: payment.recipientBank
+  });
+  store.updatePayment(payment.id, {
+    recorded: true,
+    ledgerRef: r.ok ? r.record.ref : null,
+    ledgerError: r.ok ? null : r.message
+  });
 }
 
 async function paymentStatus(id, body) {
@@ -110,7 +130,8 @@ async function paymentStatus(id, body) {
           paidAt: now,
           tx: { hash: "demo_" + id.slice(0, 8), currency: payment.currency, amount: payment.amount }
         });
-        return { status: 200, body: publicPayment(paid) };
+        recordLedger(paid);
+        return { status: 200, body: publicPayment(store.getPayment(id)) };
       }
     } else if (now > payment.expiresAt) {
       const expired = store.updatePayment(id, { status: "expired" });
@@ -121,7 +142,8 @@ async function paymentStatus(id, body) {
         const result = await bakong.checkByMd5(payment.md5);
         if (result.paid) {
           const paid = store.updatePayment(id, { status: "paid", paidAt: now, tx: result.tx });
-          return { status: 200, body: publicPayment(paid) };
+          recordLedger(paid);
+          return { status: 200, body: publicPayment(store.getPayment(id)) };
         }
         store.updatePayment(id, { lastError: result.reason || null });
       } catch (err) {
