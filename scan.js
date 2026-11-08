@@ -408,6 +408,12 @@
     state.otp += digit;
     updateOtpDots();
     if (otpError) { otpError.textContent = ""; otpError.hidden = true; }
+    // 6 位输满即自动提交，不用再点 Done
+    if (state.otp.length === 6) {
+      window.setTimeout(function () {
+        if (state.otp.length === 6 && !state.otpCompleted) submitOtp();
+      }, 200);
+    }
   }
 
   function submitOtp() {
