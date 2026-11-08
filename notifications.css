@@ -35,31 +35,6 @@ body.notification-open .bottom-nav { visibility: hidden; }
   background: linear-gradient(155deg, #087bf4, #066be6);
   border-bottom: 2px solid rgba(255,255,255,.74);
 }
-.notification-status {
-  position: absolute;
-  top: max(7px, env(safe-area-inset-top));
-  right: 29px;
-  left: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 20px;
-  color: rgba(255,255,255,.98);
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.notification-status-icons { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
-.notification-status-icons svg {
-  width: 44px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.notification-status-icons span { padding: 1px 4px; border-radius: 4px; background: #1dbd65; }
 .notification-titlebar {
   position: absolute;
   right: 13px;
