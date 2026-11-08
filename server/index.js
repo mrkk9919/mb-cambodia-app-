@@ -299,13 +299,16 @@ async function handleApi(req, res, pathname, query) {
     const activity = store.listTransfers(accountId).map((t) => {
       const outgoing = t.from === accountId;
       const other = store.getAccount(outgoing ? t.to : t.from) || {};
-      const name = other.name || (outgoing ? t.to : t.from);
+      const name = other.name || other.label || (outgoing ? t.to : t.from);
       return {
         direction: outgoing ? "out" : "in",
         title: (t.external ? "KHQR payment to " : (outgoing ? "Send to " : "Received from ")) + name,
+        counterpartyName: name,
+        counterpartyAccount: other.id || t.merchantId || null,
         amount: t.amount,
         currency: t.currency,
         createdAt: t.createdAt,
+        status: t.status || "completed",
         ref: t.ref,
         externalRef: t.externalRef || null,
         note: t.note || "",

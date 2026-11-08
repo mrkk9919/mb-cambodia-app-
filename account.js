@@ -352,6 +352,26 @@
   var acdToast = document.getElementById("acd-toast");
   var acdToastTimer = null;
   var detailAccount = null;
+  var transactionDetail = document.getElementById("transaction-detail");
+  var currentTransaction = null;
+
+  var txdNodes = {
+    amount: document.getElementById("txd-amount"),
+    fromLabel: document.getElementById("txd-from-label"),
+    fromName: document.getElementById("txd-from-name"),
+    fromAccount: document.getElementById("txd-from-account"),
+    toLabel: document.getElementById("txd-to-label"),
+    toName: document.getElementById("txd-to-name"),
+    toAccount: document.getElementById("txd-to-account"),
+    status: document.getElementById("txd-status"),
+    transferAmount: document.getElementById("txd-transfer-amount"),
+    time: document.getElementById("txd-time"),
+    ref: document.getElementById("txd-ref"),
+    externalRef: document.getElementById("txd-external-ref"),
+    copyRef: document.getElementById("txd-copy-ref"),
+    description: document.getElementById("txd-description"),
+    toast: document.getElementById("txd-toast")
+  };
 
   function acdShowToast(text) {
     if (!acdToast) return;
@@ -368,6 +388,92 @@
     return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) +
       ", " + pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear();
   }
+
+  function transactionParty(t) {
+    if (t.counterpartyName) return String(t.counterpartyName);
+    return stripDemo(t.title || "")
+      .replace(/^(Received from|Send to|KHQR payment to)\s+/i, "") || "Account holder";
+  }
+
+  function transactionAccountText(id, bank, currency) {
+    var value = id ? String(id) : "";
+    if (bank) value += (value ? " - " : "") + bank;
+    if (currency) value += (value ? " | " : "") + currency;
+    return value || "Account details unavailable";
+  }
+
+  function openTransactionDetail(t, isSample) {
+    if (!transactionDetail || !t) return;
+    currentTransaction = t;
+    var incoming = t.direction === "in";
+    var currency = t.currency || (detailAccount && detailAccount.currency) || "USD";
+    var amount = money(t.amount, currency) + " " + currency;
+    var party = transactionParty(t);
+    var owner = (detailAccount && detailAccount.name) || HOLDER;
+    var counterpartyAccount = t.counterpartyAccount || t.merchantId || "";
+    var bank = t.bank || "";
+    var sample = Boolean(isSample || t.demo);
+    var rawStatus = String(t.status || "").toLowerCase();
+    var status = sample ? "Sample record" :
+      (rawStatus === "pending" ? "Pending" :
+        (rawStatus === "failed" || rawStatus === "expired" ? "Failed" : "Success"));
+
+    txdNodes.amount.textContent = (incoming ? "+" : "-") + amount;
+    txdNodes.amount.classList.toggle("in", incoming);
+    txdNodes.fromLabel.textContent = incoming ? "From" : "From";
+    txdNodes.toLabel.textContent = "To";
+    txdNodes.fromName.textContent = incoming ? party : owner;
+    txdNodes.toName.textContent = incoming ? owner : party;
+    txdNodes.fromAccount.textContent = incoming
+      ? transactionAccountText(counterpartyAccount, bank, currency)
+      : transactionAccountText(detailAccount && detailAccount.id, "", currency);
+    txdNodes.toAccount.textContent = incoming
+      ? transactionAccountText(detailAccount && detailAccount.id, "", currency)
+      : transactionAccountText(counterpartyAccount, bank, currency);
+    txdNodes.status.textContent = status;
+    txdNodes.status.dataset.state = sample ? "sample" :
+      (status === "Success" ? "success" : (status === "Pending" ? "pending" : "failed"));
+    txdNodes.transferAmount.textContent = amount;
+    txdNodes.time.textContent = formatTime(t.createdAt);
+    txdNodes.ref.textContent = t.ref || "Not available";
+    txdNodes.externalRef.textContent = t.externalRef || "Not available";
+    txdNodes.copyRef.disabled = !t.externalRef;
+    txdNodes.description.textContent = t.note || stripDemo(t.title || "") || "No description";
+    txdNodes.toast.textContent = "";
+    if (detail) detail.setAttribute("aria-hidden", "true");
+    transactionDetail.classList.add("open");
+    transactionDetail.setAttribute("aria-hidden", "false");
+  }
+
+  function closeTransactionDetail() {
+    if (!transactionDetail) return;
+    transactionDetail.classList.remove("open");
+    transactionDetail.setAttribute("aria-hidden", "true");
+    if (detail && detail.classList.contains("open")) detail.setAttribute("aria-hidden", "false");
+    currentTransaction = null;
+  }
+
+  var txdBack = document.getElementById("txd-back");
+  if (txdBack) txdBack.addEventListener("click", closeTransactionDetail);
+  if (txdNodes.copyRef) {
+    txdNodes.copyRef.addEventListener("click", function () {
+      var ref = currentTransaction && currentTransaction.externalRef;
+      if (!ref) return;
+      function copied() { txdNodes.toast.textContent = "External reference copied"; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(String(ref)).then(copied).catch(function () {
+          txdNodes.toast.textContent = "Unable to copy reference";
+        });
+      } else {
+        txdNodes.toast.textContent = "Copy is not available in this browser";
+      }
+    });
+  }
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && transactionDetail && transactionDetail.classList.contains("open")) {
+      closeTransactionDetail();
+    }
+  });
 
   function accountKind(a) {
     return /savings/i.test(a.label || "") ? "Savings account" : "Payment account";
@@ -417,6 +523,16 @@
     items.forEach(function (t) {
       var li = document.createElement("li");
       li.className = "acd-row";
+      li.setAttribute("role", "button");
+      li.setAttribute("tabindex", "0");
+      li.setAttribute("aria-label", "View transaction details: " + stripDemo(t.title || "transaction"));
+      li.addEventListener("click", function () { openTransactionDetail(t, isSample); });
+      li.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openTransactionDetail(t, isSample);
+        }
+      });
 
       var avatar = document.createElement("span");
       avatar.className = "acd-avatar";
