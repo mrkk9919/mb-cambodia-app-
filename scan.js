@@ -828,7 +828,7 @@
     }).reduce(function (sum, item) { return sum + (Number(item.amount) || 0); }, 0);
     saveLocalTx({
       direction: "out",
-      title: "Demo · KHQR payment to " + (payment.merchant || "KHQR merchant"),
+      title: "KHQR payment to " + (payment.merchant || "KHQR merchant"),
       amount: debit,
       currency: fromAccount.currency,
       createdAt: Date.now(),

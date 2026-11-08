@@ -80,13 +80,13 @@
       if (item.balanceAfter !== null && item.balanceAfter !== undefined) {
         addLine(card, "Balance", money(item.balanceAfter, item.currency || (account && account.currency) || "USD"));
       }
-      if (item.title) addLine(card, outgoing ? "To" : "From", item.title.replace(/^(KHQR payment to |Send to |Received from )/, ""));
+      if (item.title) addLine(card, outgoing ? "To" : "From", item.title.replace(/^Demo\s*·\s*/i, "").replace(/^(KHQR payment to |Send to |Received from )/, ""));
       if (item.merchantId) addLine(card, "Merchant ID", item.merchantId);
       if (item.bank) addLine(card, "Receiver bank", item.bank);
       addLine(card, "Transaction time", date.time);
       addLine(card, "Transaction code", item.ref || "");
       addLine(card, "External Txn Ref", item.externalRef || "");
-      addLine(card, "Description", item.note || item.title || "");
+      addLine(card, "Description", item.note || (item.title || "").replace(/^Demo\s*·\s*/i, ""));
       transactionList.appendChild(card);
     });
   }

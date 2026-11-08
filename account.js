@@ -38,6 +38,10 @@
     return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  function stripDemo(text) {
+    return String(text == null ? "" : text).replace(/^Demo\s*·\s*/i, "");
+  }
+
   function showToast(text) {
     if (!toast) return;
     toast.textContent = text;
@@ -423,7 +427,7 @@
       main.className = "acd-main";
       var title = document.createElement("p");
       title.className = "acd-row-title";
-      title.textContent = t.title;
+      title.textContent = stripDemo(t.title);
       var time = document.createElement("p");
       time.className = "acd-row-time";
       time.textContent = formatTime(t.createdAt);
