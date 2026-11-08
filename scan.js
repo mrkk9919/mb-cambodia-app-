@@ -179,12 +179,17 @@
   };
   var RECEIVER_DEFAULT_LOGO = "./assets/banks/aba-user-logo.jpg";
 
+  function bankLogoPath(file) {
+    if (!file) return "";
+    return file.charAt(0) === "." || file.indexOf("/") > -1 ? file : "./assets/banks/" + file;
+  }
+
   function bankLogoSrc(info) {
     var accountId = String((info && info.accountId) || "");
     var suffix = accountId.indexOf("@") > -1 ? accountId.split("@").pop().toLowerCase() : "";
     if (!suffix && info && info.bank && info.bank.code) suffix = String(info.bank.code).toLowerCase();
     var file = BANK_LOGOS[suffix] || BANK_LOGOS[suffix.replace(/[^a-z0-9]/g, "")];
-    return file ? "./assets/banks/" + file : "";
+    return bankLogoPath(file);
   }
 
   function paintMark(el, logoSrc, label) {
@@ -937,14 +942,29 @@
     bakong: ["Bakong", "National Bank of Cambodia"]
   };
 
+  // 柬埔寨银行目录（kh-banks.js 由 open-banking-tracker-data 生成）：补齐别名、正式名称和 logo
+  (function mergeKhBankDirectory() {
+    var banks = (window.MB_KH_BANKS instanceof Array) ? window.MB_KH_BANKS : [];
+    banks.forEach(function (bank) {
+      var aliases = bank.aliases instanceof Array ? bank.aliases : [];
+      var names = [bank.name, bank.short].filter(Boolean);
+      aliases.forEach(function (alias) {
+        var key = String(alias).toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (!key) return;
+        if (!BANK_SUFFIXES[key]) BANK_SUFFIXES[key] = names;
+        if (bank.logo) BANK_LOGOS[key] = bank.logo;
+      });
+    });
+  })();
+
   function localBank(accountId) {
     var id = String(accountId || "");
     if (id.indexOf("@") === -1) return { name: "Bakong member bank", short: "" };
     var key = id.split("@").pop().toLowerCase();
-    var hit = BANK_SUFFIXES[key];
+    var hit = BANK_SUFFIXES[key] || BANK_SUFFIXES[key.replace(/[^a-z0-9]/g, "")];
     if (!hit) return { name: "Bakong member bank", short: "", logo: "" };
-    var file = BANK_LOGOS[key];
-    return { name: hit[0], short: hit[1], logo: file ? "./assets/banks/" + file : "" };
+    var file = BANK_LOGOS[key] || BANK_LOGOS[key.replace(/[^a-z0-9]/g, "")];
+    return { name: hit[0], short: hit[1], logo: bankLogoPath(file) };
   }
 
   function resolveInfo(info) {

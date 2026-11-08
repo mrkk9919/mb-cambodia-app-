@@ -413,6 +413,44 @@
     return value || "Account details unavailable";
   }
 
+  // 柬埔寨银行目录（kh-banks.js）：按银行名/别名匹配正式名称与 logo
+  function khBankFor(bank) {
+    var banks = (window.MB_KH_BANKS instanceof Array) ? window.MB_KH_BANKS : [];
+    var raw = String(bank || "").toLowerCase();
+    var key = raw.replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    var simplified = key.replace(/\b(bank|plc|ltd|limited|public|company|co|corporation|branch|cambodia|cambodge)\b/g, " ")
+      .replace(/\s+/g, " ").trim();
+    var match = null;
+    banks.some(function (item) {
+      var aliases = (item.aliases instanceof Array ? item.aliases : []).map(function (a) {
+        return String(a).toLowerCase();
+      });
+      if (aliases.indexOf(key) > -1 || aliases.indexOf(key.replace(/ /g, "")) > -1) {
+        match = item;
+        return true;
+      }
+      if (!simplified) return false;
+      var names = [item.name, item.short].map(function (n) {
+        return String(n || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ")
+          .replace(/\b(bank|plc|ltd|limited|public|company|co|corporation|branch|cambodia|cambodge)\b/g, " ")
+          .replace(/\s+/g, " ").trim();
+      });
+      if (names.indexOf(simplified) > -1) {
+        match = item;
+        return true;
+      }
+      var hit = aliases.some(function (alias) {
+        return alias && (simplified.indexOf(alias) > -1 || key.indexOf(alias) > -1);
+      });
+      if (hit) {
+        match = item;
+        return true;
+      }
+      return false;
+    });
+    return match;
+  }
+
   // 对方头像：本行是 MB 卡片，对手方按银行显示
   function paintPartyMark(el, bank, isOwn) {
     if (!el) return;
@@ -422,6 +460,12 @@
       return;
     }
     var name = String(bank);
+    var directoryBank = khBankFor(name);
+    if (directoryBank && directoryBank.logo) {
+      el.classList.add("has-logo");
+      el.innerHTML = '<img src="' + directoryBank.logo + '" alt="' + directoryBank.name.replace(/"/g, "") + '">';
+      return;
+    }
     if (/acleda/i.test(name)) {
       el.classList.add("has-logo");
       el.innerHTML = '<img src="./acleda-bank-logo.png" alt="">';
