@@ -71,7 +71,6 @@
   var pfSuccessBank = document.getElementById("pf-success-bank");
   var pfSuccessBankMark = document.getElementById("pf-success-bank-mark");
   var pfSuccessBankShort = document.getElementById("pf-success-bank-short");
-  var pfSuccessFromMark = document.getElementById("pf-success-from-mark");
   var pfSuccessRef = document.getElementById("pf-success-ref");
   var pfSuccessTx = document.getElementById("pf-success-tx");
   var pfSuccessNote = document.getElementById("pf-success-note");
@@ -879,7 +878,6 @@
     );
     var displayExternalRef = displayTransactionCode(externalRef || refNumber(payment.ref));
     pfSuccessTx.textContent = displayExternalRef;
-    if (pfSuccessFromMark) pfSuccessFromMark.textContent = displayExternalRef;
     pfSuccessNote.textContent = note;
 
     lastReceipt = {

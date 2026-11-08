@@ -982,26 +982,39 @@
 .su-body { padding-top: 16px; }
 .su-brand {
   width: 190px;
-  height: 58px;
   margin: 0 auto 8px;
-  overflow: hidden;
 }
-.su-brand img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.su-brand img { width: 100%; height: auto; display: block; object-fit: contain; }
 .su-title { max-width: 340px; margin: 14px auto 0; font-size: clamp(17px, 4.5vw, 20px); }
 .su-parties { padding: 20px 14px; }
 .su-mark--ref {
   width: auto;
-  min-width: 44px;
-  max-width: 96px;
-  height: 36px;
-  padding: 0 9px;
-  border: 1px solid #c6dcfb;
+  min-width: 76px;
+  max-width: 84px;
+  height: 40px;
+  padding: 0 8px 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid #d7e5f8;
   border-radius: 10px;
-  background: #eaf3ff;
-  color: #1559a8;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.25px;
+  background: linear-gradient(145deg, #fff 8%, #edf5ff 100%);
+  box-shadow: 0 2px 6px rgba(20, 73, 145, 0.08);
+}
+.su-mark--brand::before {
+  content: "";
+  flex: 0 0 27px;
+  width: 27px;
+  height: 29px;
+  background: url("./mb-cambodia-logo.png") left center / auto 29px no-repeat;
+}
+.su-mark--brand::after {
+  content: "MB BANK";
+  color: #0756a5;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.15px;
   white-space: nowrap;
 }
 .su-detail { border-color: #2385ee; border-width: 1.5px; border-radius: 12px; }
