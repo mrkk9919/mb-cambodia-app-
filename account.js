@@ -542,9 +542,9 @@
         Number(hm[0]), Number(hm[1]), Number(hm[2])).getTime();
     }
     return [
-      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.07 * m, currency: currency, createdAt: stamp("05/11/2026 20:52:00"), ref: "FT263140N5GL", externalRef: "052d185c", status: "success", counterpartyAccount: "2118997861", bank: "Maybank Cambodia PLC", note: "MEKONG TRADERS transfer" },
+      { direction: "in", title: "Received from ANGKOR TRAVEL", amount: 0.07 * m, currency: currency, createdAt: stamp("05/11/2026 20:52:00"), ref: "FT263140N5GL", externalRef: "052d185c", status: "success", counterpartyAccount: "wing_khqr@wing", bank: "Wing Bank", note: "ANGKOR TRAVEL transfer" },
       { direction: "in", title: "Received from SOKHA CHAN", amount: 0.01 * m, currency: currency, createdAt: stamp("05/11/2026 20:51:00"), ref: "FT263140N4KM", externalRef: "6b31f0a2", status: "success", counterpartyAccount: "000987654321", bank: "MB Bank Cambodia", note: "SOKHA CHAN transfer" },
-      { direction: "in", title: "Received from MEKONG TRADERS", amount: 0.01 * m, currency: currency, createdAt: stamp("31/10/2026 21:05:00"), ref: "FT262990F2QJ", externalRef: "93c47d1e", status: "success", counterpartyAccount: "2118997861", bank: "Maybank Cambodia PLC", note: "MEKONG TRADERS transfer" },
+      { direction: "in", title: "Received from ANGKOR TRAVEL", amount: 0.01 * m, currency: currency, createdAt: stamp("31/10/2026 21:05:00"), ref: "FT262990F2QJ", externalRef: "93c47d1e", status: "success", counterpartyAccount: "wing_khqr@wing", bank: "Wing Bank", note: "ANGKOR TRAVEL transfer" },
       { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 3.93 * m, currency: currency, createdAt: stamp("30/10/2026 22:34:00"), ref: "FT262940A7VB", externalRef: "7fa2c918", status: "success", counterpartyAccount: "000778899001", bank: "ACLEDA Bank", note: "Payment to ANGKOR SUPPLY" },
       { direction: "out", title: "Send to ANGKOR SUPPLY", amount: 50 * m, currency: currency, createdAt: stamp("30/10/2026 20:56:00"), ref: "FT262940A6TD", externalRef: "24bd90f5", status: "success", counterpartyAccount: "000778899001", bank: "ACLEDA Bank", note: "Payment to ANGKOR SUPPLY" },
       { direction: "out", title: "Send to KHOEURN BUNTHOEURN", amount: 1.99 * m, currency: currency, createdAt: stamp("30/10/2026 20:24:00"), ref: "FT262940A5RP", externalRef: "c81e3b67", status: "success", counterpartyAccount: "000665544332", bank: "Wing Bank", note: "Transfer to KHOEURN BUNTHOEURN" },
@@ -601,6 +601,12 @@
       time.textContent = formatTime(t.createdAt);
       main.appendChild(title);
       main.appendChild(time);
+      if (t.counterpartyAccount) {
+        var acct = document.createElement("p");
+        acct.className = "acd-row-acct";
+        acct.textContent = t.counterpartyAccount + (t.bank ? " · " + t.bank : "");
+        main.appendChild(acct);
+      }
       if (t.note) {
         var note = document.createElement("p");
         note.className = "acd-row-note";
