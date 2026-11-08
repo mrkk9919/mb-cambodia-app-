@@ -21,6 +21,9 @@
     <link rel="stylesheet" href="./scan.css?v=3">
     <link rel="stylesheet" href="./pay-flow.css?v=5">
     <link rel="stylesheet" href="./account.css?v=1">
+    <link rel="stylesheet" href="./referral.css?v=1">
+    <link rel="stylesheet" href="./notifications.css?v=1">
+    <link rel="stylesheet" href="./settings.css?v=1">
   </head>
   <body>
     <div id="root"></div>
@@ -414,10 +417,327 @@
         </section>
         <div class="acct-toast" id="acct-toast" role="status" aria-live="polite"></div>
       </div>
+      <main class="referral-page" id="referral-page" aria-hidden="true" aria-label="Referral">
+        <div class="referral-scroll">
+          <section class="referral-hero">
+            <div class="referral-status" aria-hidden="true">
+              <span>06:31</span>
+              <span class="referral-status-icons">
+                <svg viewBox="0 0 54 18"><path d="M2 16V11h5v5M10 16V7h5v9M18 16V3h5v13M28 7c5-5 13-5 18 0M31 10c3-3 8-3 11 0M35 13c1-1 3-1 4 0" /><path d="M50 4h3v10h-3z" /></svg>
+                <span>66%</span>
+              </span>
+            </div>
+            <img class="referral-brand" src="./mb-cambodia-logo.png" alt="MB Cambodia" />
+            <div class="referral-hero-copy">
+              <p class="referral-kicker">MB CAMBODIA · REWARDS</p>
+              <h1>Refer Your<br><span>Friends</span></h1>
+              <p class="referral-hero-note">Good things are better when shared.</p>
+            </div>
+            <div class="referral-art" aria-hidden="true">
+              <div class="referral-orbit referral-orbit-one"></div>
+              <div class="referral-orbit referral-orbit-two"></div>
+              <div class="referral-person referral-person-one"><i></i><b></b></div>
+              <div class="referral-person referral-person-two"><i></i><b></b></div>
+              <div class="referral-phone">
+                <span class="referral-phone-speaker"></span>
+                <span class="referral-phone-logo">MB</span>
+                <span class="referral-phone-line"></span>
+                <span class="referral-phone-line short"></span>
+                <span class="referral-phone-button"></span>
+              </div>
+              <span class="referral-coin referral-coin-one">$</span>
+              <span class="referral-coin referral-coin-two">+</span>
+            </div>
+          </section>
+
+          <section class="referral-card" aria-label="Your referral details">
+            <p class="referral-card-intro">Get a referral code and send it to your friends</p>
+            <div class="referral-details">
+              <div class="referral-fields">
+                <label class="referral-field">
+                  <span>Referral link</span>
+                  <span class="referral-input-wrap">
+                    <input id="referral-link" type="text" readonly aria-label="Referral link" />
+                    <button class="referral-copy" type="button" data-copy="link" aria-label="Copy referral link">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+                    </button>
+                  </span>
+                </label>
+                <label class="referral-field">
+                  <span>Referral code</span>
+                  <span class="referral-input-wrap">
+                    <input id="referral-code" type="text" readonly value="06855788" aria-label="Referral code" />
+                    <button class="referral-copy" type="button" data-copy="code" aria-label="Copy referral code">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+                    </button>
+                  </span>
+                </label>
+              </div>
+              <div class="referral-qr-wrap">
+                <div class="referral-qr">
+                  <img id="referral-qr-image" alt="Referral QR code" />
+                  <span class="referral-qr-center">MB</span>
+                </div>
+                <span>Scan QR code</span>
+              </div>
+            </div>
+            <button class="referral-share" id="referral-share" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.7 6.8-4.2M8.6 13.3l6.8 4.2"/></svg>
+              Share referral link
+            </button>
+          </section>
+
+          <section class="referral-list">
+            <h2>Referral list <span>(0)</span></h2>
+            <div class="referral-empty" aria-live="polite">
+              <span></span><span></span><span></span>
+              <p>Share your code to invite a friend</p>
+            </div>
+          </section>
+        </div>
+
+        <nav class="referral-nav" aria-label="Main navigation">
+          <button type="button" data-ref-nav="home" aria-label="Home">
+            <svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-6v-6h-4v6H4z"/></svg><span>Home</span>
+          </button>
+          <button type="button" class="active" data-ref-nav="referral" aria-current="page" aria-label="Referral">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A5.5 5.5 0 0 1 9 13h1M16 8v6m-3-3h6"/><circle cx="16" cy="11" r="1"/></svg><span>Referral</span>
+          </button>
+          <button type="button" class="referral-nav-scan" data-ref-nav="scan" aria-label="Scan QR">
+            <svg viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><path d="M8 8h8v8H8z"/></svg>
+          </button>
+          <button type="button" data-ref-nav="notifications" aria-label="Notifications">
+            <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span>
+          </button>
+          <button type="button" data-ref-nav="settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.7Z" transform="translate(-1 -2)"/></svg><span>Settings</span>
+          </button>
+        </nav>
+        <div class="referral-toast" id="referral-toast" role="status" aria-live="polite"></div>
+      </main>
+      <main class="notification-page" id="notification-page" aria-hidden="true" aria-label="Notifications">
+        <header class="notification-header">
+          <div class="notification-status" aria-hidden="true">
+            <span>06:31</span>
+            <span class="notification-status-icons">
+              <svg viewBox="0 0 54 18"><path d="M2 16V11h5v5M10 16V7h5v9M18 16V3h5v13M28 7c5-5 13-5 18 0M31 10c3-3 8-3 11 0M35 13c1-1 3-1 4 0" /><path d="M50 4h3v10h-3z" /></svg>
+              <span>67%</span>
+            </span>
+          </div>
+          <div class="notification-titlebar">
+            <button class="notification-back" type="button" data-notification-close aria-label="Back">
+              <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <h1>Notifications</h1>
+            <button class="notification-home" type="button" data-notification-close aria-label="Home">
+              <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/></svg>
+            </button>
+          </div>
+        </header>
+        <div class="notification-scroll">
+          <div class="notification-tabs" role="tablist" aria-label="Notification type">
+            <button class="selected" id="notice-tab-general" type="button" role="tab" aria-selected="true" aria-controls="notice-general" data-notice-tab="general">GENERAL</button>
+            <button id="notice-tab-transaction" type="button" role="tab" aria-selected="false" aria-controls="notice-transaction" data-notice-tab="transaction">TRANSACTION</button>
+          </div>
+
+          <section class="notification-panel" id="notice-general" role="tabpanel" aria-labelledby="notice-tab-general">
+            <article class="notification-card">
+              <h2><span aria-hidden="true">🚨</span> Security Alert: New Device Login</h2>
+              <p>A login from a new device was detected. If this wasn't you, please contact our Hotline immediately.</p>
+              <time datetime="2026-11-01">01/11/2026</time>
+            </article>
+            <article class="notification-card notification-card-km">
+              <h2><span aria-hidden="true">🚨</span> ការជូនដំណឹងសុវត្ថិភាព</h2>
+              <p>មានការចូលប្រើគណនីពីឧបករណ៍ថ្មី។ ប្រសិនបើមិនមែនជាអ្នក សូមទាក់ទងទៅកាន់ Hotline ភ្លាមៗ។</p>
+              <time datetime="2026-11-01">01/11/2026</time>
+            </article>
+            <article class="notification-card">
+              <h2><span aria-hidden="true">🚨</span> Security Alert: New Device Login</h2>
+              <p>A login from a new device was detected. If this wasn't you, please contact our Hotline immediately.</p>
+              <time datetime="2026-10-30">30/10/2026</time>
+            </article>
+            <article class="notification-card notification-card-km">
+              <h2><span aria-hidden="true">🚨</span> ការជូនដំណឹងសុវត្ថិភាព</h2>
+              <p>សូមពិនិត្យមើលសកម្មភាពគណនីរបស់អ្នក។ សូមទាក់ទងទៅកាន់ Hotline ប្រសិនបើអ្នកត្រូវការជំនួយ។</p>
+              <time datetime="2026-10-29">29/10/2026</time>
+            </article>
+          </section>
+
+          <section class="notification-panel" id="notice-transaction" role="tabpanel" aria-labelledby="notice-tab-transaction" hidden>
+            <h2 class="notification-day">Today</h2>
+            <article class="transaction-notice">
+              <p>Checking account: <strong>211897861</strong></p>
+              <p>Amount: <strong class="transaction-out">-0.10 USD</strong></p>
+              <p>Balance: <strong>0.89 USD</strong></p>
+              <p>Transaction time: <strong>06:29 08/11/2026</strong></p>
+              <p>Transaction code: <strong>FT26314LRHLK</strong></p>
+              <p>Description: <strong>THOEURN SAROEUN transfer</strong></p>
+            </article>
+            <article class="transaction-notice">
+              <p>Checking account: <strong>211897861</strong></p>
+              <p>Amount: <strong class="transaction-out">-0.10 USD</strong></p>
+              <p>Balance: <strong>0.99 USD</strong></p>
+              <p>Transaction time: <strong>06:27 08/11/2026</strong></p>
+              <p>Transaction code: <strong>FT26314H3Y0H</strong></p>
+              <p>Description: <strong>THOEURN SAROEUN transfer</strong></p>
+            </article>
+            <article class="transaction-notice">
+              <p>Checking account: <strong>211897861</strong></p>
+              <p>Amount: <strong class="transaction-in">+1.00 USD</strong></p>
+              <p>Balance: <strong>1.09 USD</strong></p>
+              <p>From: <strong>YUKHEANG SOEU</strong></p>
+              <p>Transaction time: <strong>04:56 08/11/2026</strong></p>
+              <p>Transaction code: <strong>FT263142Z3J</strong></p>
+              <p>Description: <strong>Transfer from Cifp</strong></p>
+            </article>
+            <h2 class="notification-day">05/11/2026</h2>
+            <article class="transaction-notice">
+              <p>Checking account: <strong>211897861</strong></p>
+              <p>Amount: <strong class="transaction-in">+0.07 USD</strong></p>
+              <p>Balance: <strong>0.19 USD</strong></p>
+              <p>From: <strong>MEKONG TRADERS</strong></p>
+              <p>Transaction time: <strong>20:52 05/11/2026</strong></p>
+              <p>Transaction code: <strong>FT263105MKT</strong></p>
+              <p>Description: <strong>Received from MEKONG TRADERS</strong></p>
+            </article>
+          </section>
+        </div>
+        <nav class="notification-nav" aria-label="Main navigation">
+          <button type="button" data-notification-nav="home" aria-label="Home">
+            <svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-6v-6h-4v6H4z"/></svg><span>Home</span>
+          </button>
+          <button type="button" data-notification-nav="referral" aria-label="Referral">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A5.5 5.5 0 0 1 9 13h1M16 8v6m-3-3h6"/><circle cx="16" cy="11" r="1"/></svg><span>Referral</span>
+          </button>
+          <button type="button" class="notification-nav-scan" data-notification-nav="scan" aria-label="Scan QR">
+            <svg viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><path d="M8 8h8v8H8z"/></svg>
+          </button>
+          <button type="button" class="active" aria-current="page" aria-label="Notifications">
+            <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span>
+          </button>
+          <button type="button" data-notification-nav="settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.7Z" transform="translate(-1 -2)"/></svg><span>Settings</span>
+          </button>
+        </nav>
+      </main>
+      <main class="settings-page" id="settings-page" aria-hidden="true" aria-label="Settings">
+        <div class="settings-scroll">
+          <section class="settings-hero">
+            <div class="settings-status" aria-hidden="true">
+              <span>06:31</span>
+              <span class="settings-status-icons">
+                <svg viewBox="0 0 54 18"><path d="M2 16V11h5v5M10 16V7h5v9M18 16V3h5v13M28 7c5-5 13-5 18 0M31 10c3-3 8-3 11 0M35 13c1-1 3-1 4 0" /><path d="M50 4h3v10h-3z" /></svg>
+                <span>67%</span>
+              </span>
+            </div>
+            <h1>Settings</h1>
+            <div class="settings-profile">
+              <div class="settings-avatar" aria-hidden="true"><span>✳</span><b>MB</b><small>Cambodia</small></div>
+              <div class="settings-profile-main">
+                <h2>THOEURN SAROEUN</h2>
+                <div class="settings-verification">
+                  <span class="settings-partial">Partial</span>
+                  <button type="button" id="settings-verify"><span aria-hidden="true">✓</span> Verify Online</button>
+                </div>
+              </div>
+              <svg class="settings-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </section>
+
+          <section class="settings-list">
+            <button class="settings-row" type="button" data-settings-action="Identification Documents">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><rect x="4" y="7" width="40" height="34" rx="6"/><circle cx="16" cy="20" r="5"/><path d="M8 34c1-5 4-7 8-7s7 2 8 7M29 17h10M29 24h10M29 31h7"/></svg></span>
+              <span>Identification Documents</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </section>
+
+          <h2 class="settings-section-title">Utilities</h2>
+          <section class="settings-list">
+            <div class="settings-row">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><path d="M9 18V9h9M30 9h9v9M39 30v9h-9M18 39H9v-9"/><circle cx="24" cy="21" r="6"/><path d="M16 35c1-5 4-8 8-8s7 3 8 8"/></svg></span>
+              <span>FaceID Auto Login</span>
+              <button class="settings-toggle on" type="button" role="switch" aria-checked="true" aria-label="FaceID Auto Login"><i></i></button>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><rect x="9" y="4" width="30" height="40" rx="6"/><path d="M16 15h16M16 22h16M16 29h16M20 37h8"/></svg></span>
+              <span>In-house Transfer Via Phone Number</span>
+              <button class="settings-toggle on" type="button" role="switch" aria-checked="true" aria-label="In-house Transfer Via Phone Number"><i></i></button>
+            </div>
+            <button class="settings-row" type="button" data-settings-action="Digital OTP">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><rect x="9" y="4" width="30" height="40" rx="6"/><path d="M17 12h14M17 35h14"/><circle cx="17" cy="23" r="2" fill="currentColor"/><circle cx="24" cy="23" r="2" fill="currentColor"/><circle cx="31" cy="23" r="2" fill="currentColor"/></svg></span>
+              <span>Digital OTP</span>
+              <em class="settings-new">✦ New</em>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button class="settings-row" type="button" data-settings-action="Face Authentication Limit">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><path d="M8 17V9h8M32 9h8v8M40 31v8h-8M16 39H8v-8"/><circle cx="24" cy="23" r="9"/><path d="M19 21h.1M29 21h.1M20 27c2 2 6 2 8 0"/></svg></span>
+              <span>Face Authentication Limit</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button class="settings-row" type="button" data-settings-action="Easy Payment">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><rect x="5" y="10" width="38" height="29" rx="5"/><path d="M13 20h20M13 28h14"/><path class="settings-icon-accent" d="m34 4-5 9h6l-3 8 9-12h-6l2-5"/></svg></span>
+              <span>Easy Payment</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button class="settings-row" type="button" data-settings-action="Unlink Devices">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><rect x="8" y="4" width="32" height="40" rx="6"/><circle cx="24" cy="23" r="11"/><path d="m20 19 8 8m0-8-8 8M21 38h6"/></svg></span>
+              <span>Unlink Devices</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button class="settings-row" type="button" data-settings-action="Change Password">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><path d="M10 9H5v30h5M38 9h5v30h-5M17 18h3M27 18h4M17 30h3M27 30h4"/><path d="M24 6v36"/></svg></span>
+              <span>Change Password</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button class="settings-row" type="button" data-settings-action="Change Language">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19"/><path d="M5 24h38M24 5c-6 6-9 12-9 19s3 13 9 19M24 5c6 6 9 12 9 19s-3 13-9 19M9 14h30M9 34h30"/></svg></span>
+              <span>Change Language</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </section>
+
+          <h2 class="settings-section-title">Notifications</h2>
+          <section class="settings-list settings-list-last">
+            <button class="settings-row" type="button" data-settings-action="Push Notification">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><path d="M9 34h30l-4-6V18a11 11 0 0 0-22 0v10zM20 40h8"/></svg></span>
+              <span>Push Notification</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button class="settings-row" type="button" data-settings-action="Contact Us">
+              <span class="settings-row-icon"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19"/><path d="M21 18a3 3 0 1 1 5 2c-2 2-2 3-2 6M24 33h.1"/></svg></span>
+              <span>Contact Us</span>
+              <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </section>
+        </div>
+
+        <nav class="settings-nav" aria-label="Main navigation">
+          <button type="button" data-settings-nav="home" aria-label="Home">
+            <svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-6v-6h-4v6H4z"/></svg><span>Home</span>
+          </button>
+          <button type="button" data-settings-nav="referral" aria-label="Referral">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5A5.5 5.5 0 0 1 9 13h1M16 8v6m-3-3h6"/><circle cx="16" cy="11" r="1"/></svg><span>Referral</span>
+          </button>
+          <button type="button" class="settings-nav-scan" data-settings-nav="scan" aria-label="Scan QR">
+            <svg viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><path d="M8 8h8v8H8z"/></svg>
+          </button>
+          <button type="button" data-settings-nav="notifications" aria-label="Notifications">
+            <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Notifications</span>
+          </button>
+          <button type="button" class="active" aria-current="page" aria-label="Settings">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.5-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.5.9l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.7Z" transform="translate(-1 -2)"/></svg><span>Settings</span>
+          </button>
+        </nav>
+        <div class="settings-toast" id="settings-toast" role="status" aria-live="polite"></div>
+      </main>
     <script src="./jsqr.min.js"></script>
     <script src="./qrcode.min.js"></script>
     <script src="./scan.js?v=12"></script>
     <script src="./transfer-entry.js?v=1"></script>
     <script src="./account.js?v=1"></script>
+    <script src="./referral.js?v=1"></script>
+    <script src="./notifications.js?v=1"></script>
+    <script src="./settings.js?v=1"></script>
   </body>
 </html>
