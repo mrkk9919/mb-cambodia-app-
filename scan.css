@@ -416,6 +416,7 @@
   margin: 0 0 12px; color: #1a1a1a; font-size: 15px; font-weight: 600;
 }
 .myqr-accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.myqr-accounts.single { grid-template-columns: 1fr; }
 .myqr-acct {
   position: relative; background: #fff; border: 1.5px solid #dde3ee; border-radius: 16px;
   padding: 12px 14px; cursor: pointer; text-align: left;

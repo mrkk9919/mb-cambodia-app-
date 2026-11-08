@@ -1401,15 +1401,16 @@
   }
 
   function myqrOrdered(accounts) {
+    // 本页只收 KHR：列表里不出现 USD 账户
     var khr = accounts.filter(function (a) { return String(a.currency || "").toUpperCase() === "KHR"; });
-    var usd = accounts.filter(function (a) { return String(a.currency || "").toUpperCase() === "USD"; });
-    return khr.concat(usd);
+    return khr.length ? khr : accounts;
   }
 
   function renderMyQrAccounts() {
     if (!myqrAccountsEl) return;
     myqrAccountsEl.innerHTML = "";
     var defId = myqrDefaultId(myqrState.accounts);
+    myqrAccountsEl.classList.toggle("single", myqrOrdered(myqrState.accounts).length === 1);
     myqrOrdered(myqrState.accounts).forEach(function (acct) {
       var card = document.createElement("button");
       card.type = "button";
@@ -1602,8 +1603,8 @@
     myqrSetStatus("", "");
     if (myqrName) myqrName.textContent = MYQR_HOLDER;
     loadMyQrAccounts().then(function (accounts) {
-      myqrState.accounts = accounts;
-      myqrState.accountId = myqrDefaultSelection(accounts);
+      myqrState.accounts = myqrOrdered(accounts);
+      myqrState.accountId = myqrDefaultSelection(myqrState.accounts);
       myqrState.amount = 0;
       renderMyQrAccounts();
       generateMyQr();
