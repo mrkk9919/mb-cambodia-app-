@@ -691,6 +691,40 @@
           </section>
         </div>
 
+        <div class="settings-language-layer" id="settings-language-layer" aria-hidden="true" hidden>
+          <button class="settings-language-backdrop" type="button" data-language-close aria-label="Close language selection"></button>
+          <section class="settings-language-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-language-title" tabindex="-1">
+            <span class="settings-language-grabber" aria-hidden="true"></span>
+            <header class="settings-language-heading">
+              <div>
+                <p>Preferences</p>
+                <h2 id="settings-language-title">Choose language</h2>
+              </div>
+              <button class="settings-language-x" type="button" data-language-close aria-label="Close">
+                <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+              </button>
+            </header>
+            <p class="settings-language-hint">Select your preferred language</p>
+            <div class="settings-language-options" role="radiogroup" aria-label="Available languages">
+              <button class="settings-language-option" type="button" role="radio" aria-checked="false" data-language-option="en">
+                <span class="settings-language-flag" aria-hidden="true">🌐</span>
+                <span class="settings-language-name">English</span>
+                <span class="settings-language-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-8"/></svg></span>
+              </button>
+              <button class="settings-language-option" type="button" role="radio" aria-checked="false" data-language-option="vi">
+                <span class="settings-language-flag" aria-hidden="true">🇻🇳</span>
+                <span class="settings-language-name">Tiếng Việt</span>
+                <span class="settings-language-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-8"/></svg></span>
+              </button>
+              <button class="settings-language-option" type="button" role="radio" aria-checked="false" data-language-option="km">
+                <span class="settings-language-flag" aria-hidden="true">🇰🇭</span>
+                <span class="settings-language-name">ភាសាខ្មែរ</span>
+                <span class="settings-language-check" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-8"/></svg></span>
+              </button>
+            </div>
+            <button class="settings-language-done" type="button" data-language-done>Done</button>
+          </section>
+        </div>
         <nav class="settings-nav" aria-label="Main navigation">
           <button type="button" data-settings-nav="home" aria-label="Home">
             <svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-6v-6h-4v6H4z"/></svg><span>Home</span>
