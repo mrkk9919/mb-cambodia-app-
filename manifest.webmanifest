@@ -1,0 +1,30 @@
+{
+  "id": "./",
+  "name": "MB Cambodia",
+  "short_name": "MB Cambodia",
+  "description": "MB Cambodia mobile banking app",
+  "lang": "en",
+  "start_url": "./index.html?launch=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#1f37b7",
+  "theme_color": "#0877ef",
+  "categories": ["finance"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
