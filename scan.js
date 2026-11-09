@@ -281,6 +281,12 @@
       }
     }
 
+    // 回退：账号为纯数字（无 @bank 后缀）时也返回，保证收款账号能展示
+    for (var k = 0; k < keys.length; k++) {
+      var numeric = String(tlv(fields[keys[k]])["00"] || "").trim();
+      if (/^[0-9]{4,}$/.test(numeric)) return numeric;
+    }
+
     return "";
   }
 
@@ -596,13 +602,21 @@
     var bank = (info.bank && info.bank.name) || "Bakong member bank";
     var bankShort = (info.bank && info.bank.short) || "";
 
-    pfMerchant.textContent = info.merchant;
-    pfConfirmMerchant.textContent = info.merchant;
-    pfSuccessMerchant.textContent = info.merchant;
+    // 付款金额页顶部名称固定展示为账户持有人
+    pfMerchant.textContent = "SOKHA CHAN";
+    var verified = info.recipient && info.recipient.exists
+      ? " · Bakong verified" + (info.recipient.kycStatus ? " · " + info.recipient.kycStatus : "")
+      : "";
+    pfConfirmMerchant.textContent = (info.recipient && info.recipient.fullName) || info.merchant;
+    pfSuccessMerchant.textContent = (info.recipient && info.recipient.fullName) || info.merchant;
     var accountId = String(info.accountId || info.account || info.bakongAccountId || "");
-    pfConfirmBank.textContent = recipientAccountText(info);
+    pfConfirmBank.textContent = recipientAccountText(info) + verified;
     var billAccount = String(info.merchantId || accountId || "");
-    if (pfBillBank) pfBillBank.textContent = billAccount ? "Account: " + displayRecipientAccount(billAccount) : bank;
+    if (pfBillBank) {
+      pfBillBank.textContent = billAccount
+        ? "Account: " + displayRecipientAccount(billAccount) + verified
+        : bank + verified;
+    }
     var markLogo = bankLogoSrc(info);
     paintMark(pfConfirmToMark, markLogo, bank);
     paintMark(billAvatar, markLogo, bank);
@@ -1004,6 +1018,7 @@
         bank: data.bank,
         merchantId: data.merchantId || "",
         accountId: data.merchantAccount || info.accountId || "",
+        recipient: data.recipient || null,
         kind: info.kind,
         raw: info.raw
       });
